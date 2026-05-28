@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alí Binary Opción | Premium Signal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
+        .btn-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+    </style>
+</head>
+<body class="bg-[#020617] text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- CAPA 1: ACTIVACIÓN PREMIUM -->
+    <div id="activation-layer" class="w-full max-w-sm text-center">
+        <div class="mb-8">
+            <i class="fas fa-robot text-6xl text-blue-500 mb-4 animate-bounce"></i>
+            <h1 class="text-3xl font-black italic tracking-tighter">ALÍ BINARY</h1>
+        </div>
+        <button id="btn-activate" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl font-black text-lg btn-glow hover:scale-[1.02] transition-transform">
+            🔊 ACTIVAR SONIDO Y SEÑALES
+        </button>
+    </div>
+
+    <!-- CAPA 2: INTERFAZ PREMIUM -->
+    <div id="main-content" class="hidden w-full max-w-sm glass p-6 rounded-3xl shadow-2xl">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="font-bold text-lg text-blue-400">SEÑAL EN VIVO</h2>
+            <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
+        </div>
+
+        <!-- Display Señal -->
+        <div class="bg-black/30 rounded-2xl p-6 border border-slate-700 text-center mb-6">
+            <div id="par" class="text-4xl font-black tracking-tight">-</div>
+            <div id="tipo" class="text-6xl font-black my-4">-</div>
+            <div id="tiempo" class="text-sm uppercase tracking-widest text-slate-400">-</div>
+        </div>
+
+        <!-- Botones de Acción -->
+        <div class="grid grid-cols-2 gap-4">
+            <button class="bg-green-600 hover:bg-green-500 p-4 rounded-xl font-black text-lg flex flex-col items-center gap-2 border-b-4 border-green-800 transition-all">
+                <i class="fas fa-arrow-up"></i> SUBE
+            </button>
+            <button class="bg-red-600 hover:bg-red-500 p-4 rounded-xl font-black text-lg flex flex-col items-center gap-2 border-b-4 border-red-800 transition-all">
+                <i class="fas fa-arrow-down"></i> BAJA
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtrGgFXXuwaz42-ozkmhzVfBA_Yegrad3e9_5u7KkzHoiXnZdDG_o2Gowz2-X9tqF2DMfiY5YoFHqN/pub?output=csv';
+        const audio = new Audio('https://actions.google.com/sounds/v1/notifications/beep_short.ogg');
+        let lastSignal = "";
+
+        async function update() {
+            try {
+                const res = await fetch(CSV_URL);
+                const data = await res.text();
+                const rows = data.split('\n');
+                if (rows.length > 1) {
+                    const [par, tipo, tiempo] = rows[1].split(',');
+                    document.getElementById('par').textContent = par;
+                    document.getElementById('tipo').textContent = tipo;
+                    document.getElementById('tipo').className = `text-6xl font-black my-4 ${tipo.trim() === 'SUBE' ? 'text-green-400' : 'text-red-400'}`;
+                    document.getElementById('tiempo').textContent = tiempo;
+                    
+                    let current = par + tipo;
+                    if (lastSignal !== "" && lastSignal !== current) audio.play();
+                    lastSignal = current;
+                }
+            } catch (e) {}
+        }
+
+        document.getElementById('btn-activate').onclick = () => {
+            document.getElementById('activation-layer').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            update();
+            setInterval(update, 3000);
+        };
+    </script>
+</body>
+</html>
