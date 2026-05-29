@@ -2,83 +2,676 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alí Binary Opción | Premium Signal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Alí Binary Options - Señales 1min</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); }
-        .btn-glow { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
-    </style>
-</head>
-<body class="bg-[#020617] text-white min-h-screen flex items-center justify-center p-4">
-
-    <!-- CAPA 1: ACTIVACIÓN PREMIUM -->
-    <div id="activation-layer" class="w-full max-w-sm text-center">
-        <div class="mb-8">
-            <i class="fas fa-robot text-6xl text-blue-500 mb-4 animate-bounce"></i>
-            <h1 class="text-3xl font-black italic tracking-tighter">ALÍ BINARY</h1>
-        </div>
-        <button id="btn-activate" class="w-full py-5 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl font-black text-lg btn-glow hover:scale-[1.02] transition-transform">
-            🔊 ACTIVAR SONIDO Y SEÑALES
-        </button>
-    </div>
-
-    <!-- CAPA 2: INTERFAZ PREMIUM -->
-    <div id="main-content" class="hidden w-full max-w-sm glass p-6 rounded-3xl shadow-2xl">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="font-bold text-lg text-blue-400">SEÑAL EN VIVO</h2>
-            <div class="h-2 w-2 bg-green-500 rounded-full animate-pulse"></div>
-        </div>
-
-        <!-- Display Señal -->
-        <div class="bg-black/30 rounded-2xl p-6 border border-slate-700 text-center mb-6">
-            <div id="par" class="text-4xl font-black tracking-tight">-</div>
-            <div id="tipo" class="text-6xl font-black my-4">-</div>
-            <div id="tiempo" class="text-sm uppercase tracking-widest text-slate-400">-</div>
-        </div>
-
-        <!-- Botones de Acción -->
-        <div class="grid grid-cols-2 gap-4">
-            <button class="bg-green-600 hover:bg-green-500 p-4 rounded-xl font-black text-lg flex flex-col items-center gap-2 border-b-4 border-green-800 transition-all">
-                <i class="fas fa-arrow-up"></i> SUBE
-            </button>
-            <button class="bg-red-600 hover:bg-red-500 p-4 rounded-xl font-black text-lg flex flex-col items-center gap-2 border-b-4 border-red-800 transition-all">
-                <i class="fas fa-arrow-down"></i> BAJA
-            </button>
-        </div>
-    </div>
-
-    <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTtrGgFXXuwaz42-ozkmhzVfBA_Yegrad3e9_5u7KkzHoiXnZdDG_o2Gowz2-X9tqF2DMfiY5YoFHqN/pub?output=csv';
-        const audio = new Audio('https://actions.google.com/sounds/v1/notifications/beep_short.ogg');
-        let lastSignal = "";
-
-        async function update() {
-            try {
-                const res = await fetch(CSV_URL);
-                const data = await res.text();
-                const rows = data.split('\n');
-                if (rows.length > 1) {
-                    const [par, tipo, tiempo] = rows[1].split(',');
-                    document.getElementById('par').textContent = par;
-                    document.getElementById('tipo').textContent = tipo;
-                    document.getElementById('tipo').className = `text-6xl font-black my-4 ${tipo.trim() === 'SUBE' ? 'text-green-400' : 'text-red-400'}`;
-                    document.getElementById('tiempo').textContent = tiempo;
-                    
-                    let current = par + tipo;
-                    if (lastSignal !== "" && lastSignal !== current) audio.play();
-                    lastSignal = current;
-                }
-            } catch (e) {}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
         }
 
-        document.getElementById('btn-activate').onclick = () => {
-            document.getElementById('activation-layer').classList.add('hidden');
-            document.getElementById('main-content').classList.remove('hidden');
-            update();
-            setInterval(update, 3000);
+        body {
+            background: linear-gradient(135deg, #0a0f1e 0%, #0c1222 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-wrapper {
+            max-width: 1100px;
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            width: 100%;
+        }
+
+        /* Pantalla de bienvenida (landing) */
+        .landing {
+            text-align: center;
+            padding: 2rem;
+            background: #0f172f;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+        }
+        .landing h1 {
+            font-size: 2.8rem;
+            background: linear-gradient(135deg, #FFD966, #FFB347);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .landing p {
+            font-size: 1.1rem;
+            color: #ccd6f0;
+            margin-bottom: 2rem;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+        .btn-premium {
+            background: linear-gradient(95deg, #FFB347, #FF8C00);
+            border: none;
+            padding: 14px 32px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0a0f1e;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .btn-premium i {
+            margin-right: 10px;
+        }
+        .btn-premium:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.4);
+        }
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #FFB347;
+            color: #FFD966;
+        }
+        .btn-outline:hover {
+            background: rgba(255, 179, 71, 0.2);
+        }
+
+        /* Tarjetas generales */
+        .card {
+            background: #0f172f;
+            border-radius: 1.8rem;
+            padding: 1.8rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,215,0,0.3);
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
+        }
+        .card h2 {
+            color: #FFD966;
+            border-left: 5px solid #FFB347;
+            padding-left: 15px;
+            margin-bottom: 1.5rem;
+            font-size: 1.6rem;
+        }
+
+        /* Formularios */
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #b9c8ff;
+        }
+        select, input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 1rem;
+            border: 1px solid #2a3650;
+            background: #1a253c;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+        }
+        select:focus, input:focus {
+            border-color: #FFB347;
+        }
+        
+        /* BOTONES - CORREGIDOS: sin opacidad, colores sólidos */
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            border-radius: 1rem;
+            border: none;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        button:active {
+            transform: scale(0.97);
+        }
+        
+        /* Botón primario (naranja) */
+        .btn-primary {
+            background: linear-gradient(95deg, #FFB347, #FF8C00);
+            color: #0a0f1e;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(95deg, #FFa030, #FF7a00);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+        }
+        
+        /* Botón secundario (azul) */
+        .btn-secondary {
+            background: #2c3e66;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #3a4e7a;
+        }
+        
+        /* Botón peligro (rojo/oscuro) */
+        .btn-danger {
+            background: #5a2e2e;
+            color: #ffaaaa;
+        }
+        .btn-danger:hover {
+            background: #7a3e3e;
+            color: white;
+        }
+        
+        /* Botón volver */
+        .btn-back {
+            background: #1e2a47;
+            color: #FFD966;
+            width: auto;
+            padding: 8px 20px;
+            display: inline-block;
+        }
+        .btn-back:hover {
+            background: #2a3a5e;
+        }
+        
+        /* Botón reportar resultado */
+        .btn-report {
+            background: #2a5f5f;
+            color: white;
+        }
+        .btn-report:hover {
+            background: #3a7a7a;
+        }
+
+        /* Sala de señales */
+        .signal-room {
+            background: #0a1222;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 2px solid #ffb347;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .signal-room h3 {
+            color: #FFD966;
+            margin-bottom: 1rem;
+            font-size: 1.3rem;
+        }
+        .signal-active-card {
+            background: linear-gradient(145deg, #1e2a3a, #0a1220);
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            font-size: 1.1rem;
+            border-left: 8px solid #FFB347;
+            margin-top: 0.5rem;
+            color: #eef2ff;
+        }
+        .cronometro {
+            background: #000000cc;
+            border-radius: 3rem;
+            padding: 0.8rem;
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: 800;
+            font-family: monospace;
+            letter-spacing: 6px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #0fa;
+            margin: 1rem 0;
+            border: 1px solid #00ffcc55;
+        }
+        .stats-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            background: #1a253c;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            text-align: center;
+            flex: 1;
+            font-weight: bold;
+            color: #FFD966;
+            font-size: 1.1rem;
+        }
+        .stat-item span {
+            display: block;
+            font-size: 1.8rem;
+            color: white;
+            margin-top: 5px;
+        }
+        .result-history {
+            max-height: 220px;
+            overflow-y: auto;
+            background: #0a1220;
+            border-radius: 1rem;
+            padding: 0.8rem;
+        }
+        .result-history ul {
+            list-style: none;
+        }
+        .result-history li {
+            padding: 8px;
+            border-bottom: 1px solid #2a3650;
+            font-size: 0.9rem;
+            color: #ccd6f0;
+        }
+        .flex-between {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 1rem;
+        }
+        .sheets-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #0a1222cc;
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 11px;
+            font-family: monospace;
+            color: #6eff9e;
+            border: 1px solid #2aff6e66;
+            z-index: 1000;
+        }
+        .button-group-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+        .button-group-row button {
+            flex: 1;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 #FFB347aa; }
+            70% { box-shadow: 0 0 0 15px transparent; }
+        }
+        .signal-pulse {
+            animation: pulse 0.6s ease-out;
+        }
+        @media (max-width: 650px) {
+            .cronometro { font-size: 2rem; letter-spacing: 3px; }
+            .card { padding: 1.2rem; }
+            .stat-item span { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-wrapper">
+    <div id="root" class="app-container"></div>
+</div>
+<div class="sheets-status" id="sheetsStatus">
+    <i class="fas fa-cloud-upload-alt"></i> Google Sheets: Conectado
+</div>
+
+<script>
+    // ========== CONFIGURACIÓN GOOGLE SHEETS ==========
+    const GOOGLE_SHEETS_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbx9Acv8Iz5ro__iCVCLd_xnhj9jBKTg6K2M_zrh-0xs_ry6I9W7IbzM-Wgpdefmkvj5/exec";
+
+    async function enviarResultadoASheets(registro) {
+        const statusDiv = document.getElementById("sheetsStatus");
+        if (!GOOGLE_SHEETS_WEBHOOK_URL) {
+            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Google Sheets: No configurado';
+            return;
+        }
+        try {
+            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
+            await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(registro)
+            });
+            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Google Sheets: Registrado';
+            setTimeout(() => {
+                if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Google Sheets: Conectado';
+            }, 2000);
+            console.log("✅ Enviado a Google Sheets:", registro);
+        } catch (error) {
+            console.error("❌ Error:", error);
+            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Error de conexión';
+        }
+    }
+
+    // ---------- ESTADO GLOBAL ----------
+    let currentView = "landing";
+    let historial = [];
+    let estadisticas = { win: 0, loss: 0, draw: 0 };
+    let currentSignal = null;
+    let countdownInterval = null;
+    let audioCtx = null;
+
+    function loadData() {
+        const saved = localStorage.getItem("aliBinarySignalsData");
+        if(saved) {
+            try {
+                const data = JSON.parse(saved);
+                historial = data.historial || [];
+                estadisticas = data.estadisticas || { win:0, loss:0, draw:0 };
+            } catch(e) {}
+        }
+        const savedSignal = localStorage.getItem("activeSignal");
+        if(savedSignal) {
+            currentSignal = JSON.parse(savedSignal);
+            if(currentSignal && currentSignal.tiempoLimite > Date.now()) {
+            } else {
+                currentSignal = null;
+                localStorage.removeItem("activeSignal");
+            }
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem("aliBinarySignalsData", JSON.stringify({ historial, estadisticas }));
+        if(currentSignal) {
+            localStorage.setItem("activeSignal", JSON.stringify(currentSignal));
+        } else {
+            localStorage.removeItem("activeSignal");
+        }
+    }
+
+    async function addResultToHistory(broker, asset, direction, result) {
+        const newReg = { broker, asset, direction, result, timestamp: Date.now() };
+        historial.push(newReg);
+        if(result === 'win') estadisticas.win++;
+        else if(result === 'loss') estadisticas.loss++;
+        else if(result === 'draw') estadisticas.draw++;
+        saveData();
+        
+        await enviarResultadoASheets({
+            timestamp: newReg.timestamp,
+            broker: broker,
+            asset: asset,
+            direction: direction,
+            result: result
+        });
+        
+        if(currentView === 'user') renderUserPanel();
+        if(currentView === 'admin') renderAdminPanel();
+    }
+
+    function playAlertSound() {
+        try {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 880;
+            gain.gain.value = 0.3;
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
+            osc.stop(audioCtx.currentTime + 1);
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+        } catch(e) { console.warn("Audio error"); }
+        if(navigator.vibrate) navigator.vibrate(200);
+    }
+
+    function renderSignalForUser() {
+        if(!currentSignal) {
+            const container = document.getElementById("userSignalContent");
+            if(container) container.innerHTML = `<div style="padding:1rem; text-align:center;"><i class="fas fa-hourglass-half"></i> Esperando señal del administrador...</div>`;
+            if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = "--:--";
+            return;
+        }
+        const remaining = Math.max(0, currentSignal.tiempoLimite - Date.now());
+        const seconds = Math.ceil(remaining / 1000);
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        const timeText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = remaining > 0 ? timeText : "00:00";
+        
+        const html = `
+            <div class="signal-active-card signal-pulse">
+                <i class="fas fa-bullhorn" style="color:#FFB347;"></i> <strong>¡NUEVA SEÑAL ACTIVA!</strong><br>
+                <i class="fas fa-chart-line"></i> Broker: ${currentSignal.broker}<br>
+                <i class="fas fa-coins"></i> Activo: ${currentSignal.asset}<br>
+                <i class="fas ${currentSignal.direction === 'CALL' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> Dirección: ${currentSignal.direction === 'CALL' ? '📈 CALL (SUBE)' : '📉 PUT (BAJA)'}<br>
+                <small><i class="far fa-clock"></i> Enviado: ${new Date(currentSignal.timestampEnvio).toLocaleTimeString()}</small>
+            </div>
+        `;
+        const container = document.getElementById("userSignalContent");
+        if(container) container.innerHTML = html;
+        if(remaining <= 0 && currentSignal) {
+            container.innerHTML += `<p style="color:#ffaa66; margin-top:8px;">⏰ Tiempo de entrada finalizado. Espera nueva señal.</p>`;
+        }
+    }
+
+    function startUserCountdown() {
+        if(countdownInterval) clearInterval(countdownInterval);
+        const update = () => {
+            if(!currentSignal) {
+                if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = "--:--";
+                return;
+            }
+            const remaining = Math.max(0, currentSignal.tiempoLimite - Date.now());
+            const seconds = Math.ceil(remaining / 1000);
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            const txt = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+            if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = remaining > 0 ? txt : "00:00";
         };
-    </script>
+        update();
+        countdownInterval = setInterval(update, 1000);
+    }
+
+    function sendSignal() {
+        const broker = document.getElementById("brokerSelect").value;
+        const asset = document.getElementById("assetInput").value.trim();
+        const direction = document.getElementById("directionSelect").value;
+        if(!asset) return alert("Ingrese un activo válido");
+        const now = Date.now();
+        const tiempoLimite = now + 60000;
+        const newSignal = { broker, asset, direction, timestampEnvio: now, tiempoLimite };
+        currentSignal = newSignal;
+        saveData();
+        if(currentView === 'user') {
+            renderSignalForUser();
+            startUserCountdown();
+            playAlertSound();
+        }
+        const previewDiv = document.getElementById("lastSignalPreview");
+        if(previewDiv) previewDiv.innerHTML = `✅ Señal enviada: ${asset} ${direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} a las ${new Date().toLocaleTimeString()}`;
+        playAlertSound();
+        if(currentView === 'admin') renderAdminPanel();
+    }
+
+    async function reportResultUser() {
+        if(!currentSignal) {
+            alert("No hay señal activa para reportar.");
+            return;
+        }
+        const result = prompt("Resultado de la operación:\nEscribe: ganada / perdida / empatada", "ganada").toLowerCase();
+        let resKey = '';
+        if(result === 'ganada' || result === 'win') resKey = 'win';
+        else if(result === 'perdida' || result === 'loss') resKey = 'loss';
+        else if(result === 'empatada' || result === 'draw') resKey = 'draw';
+        else {
+            alert("Opción no válida. Usa: ganada, perdida o empatada");
+            return;
+        }
+        await addResultToHistory(currentSignal.broker, currentSignal.asset, currentSignal.direction, resKey);
+        alert(`✅ Resultado registrado en local y en Google Sheets.`);
+        if(currentView === 'user') renderUserPanel();
+        if(currentView === 'admin') renderAdminPanel();
+    }
+
+    function exportToExcel() {
+        const dataRows = historial.map(s => ({
+            Fecha: new Date(s.timestamp).toLocaleString(),
+            Broker: s.broker,
+            Activo: s.asset,
+            Dirección: s.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)',
+            Resultado: s.result === 'win' ? 'GANADA' : (s.result === 'loss' ? 'PERDIDA' : 'EMPATADA')
+        }));
+        const ws = XLSX.utils.json_to_sheet(dataRows);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Señales_AliBinary");
+        XLSX.writeFile(wb, `AliBinary_${new Date().toISOString().slice(0,19)}.xlsx`);
+    }
+
+    function clearHistoryConfirm() {
+        if(confirm("¿Eliminar TODO el historial de resultados y estadísticas?")) {
+            historial = [];
+            estadisticas = { win:0, loss:0, draw:0 };
+            saveData();
+            if(currentView === 'admin') renderAdminPanel();
+            if(currentView === 'user') renderUserPanel();
+        }
+    }
+
+    function renderLanding() {
+        const root = document.getElementById("root");
+        root.innerHTML = `
+            <div class="landing">
+                <i class="fas fa-chart-line" style="font-size: 4rem; color:#FFB347;"></i>
+                <h1>Alí Binary Options</h1>
+                <p>Comunidad profesional de trading en IQ Option y Exnova<br>Señales a 1 minuto con precisión</p>
+                <div class="btn-group">
+                    <button class="btn-premium" id="goAdminBtn"><i class="fas fa-lock"></i> Acceso Admin</button>
+                    <button class="btn-premium btn-outline" id="goUserBtn"><i class="fas fa-users"></i> Acceso Usuarios</button>
+                </div>
+                <div style="margin-top: 2rem; font-size: 0.8rem; opacity:0.7;">
+                    <i class="fas fa-chart-simple"></i> Estadísticas en tiempo real • Alertas sonoras • Control en Google Sheets
+                </div>
+            </div>
+        `;
+        document.getElementById("goAdminBtn")?.addEventListener("click", () => { currentView = "admin"; renderAdminPanel(); });
+        document.getElementById("goUserBtn")?.addEventListener("click", () => { currentView = "user"; renderUserPanel(); });
+    }
+
+    function renderAdminPanel() {
+        const root = document.getElementById("root");
+        const total = estadisticas.win + estadisticas.loss + estadisticas.draw;
+        const winRate = total ? ((estadisticas.win / total)*100).toFixed(1) : 0;
+        const historyList = historial.slice().reverse().map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.broker} ${s.asset} | ${s.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} → ${s.result.toUpperCase()}</li>`).join('');
+        const lastSignalPreviewText = currentSignal ? `Última enviada: ${currentSignal.asset} ${currentSignal.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} a ${new Date(currentSignal.timestampEnvio).toLocaleTimeString()}` : "Sin señales recientes";
+        
+        root.innerHTML = `
+            <div class="flex-between">
+                <button class="btn-back" id="backToLandingAdmin"><i class="fas fa-arrow-left"></i> Volver al inicio</button>
+                <h2 style="color:#FFD966;"><i class="fas fa-crown"></i> Panel Administrador</h2>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-paper-plane"></i> Enviar nueva señal</h2>
+                <div class="form-group">
+                    <label>Broker</label>
+                    <select id="brokerSelect">
+                        <option value="IQ Option">IQ Option</option>
+                        <option value="Exnova">Exnova</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Par/Activo</label>
+                    <input type="text" id="assetInput" placeholder="EURUSD, BTC/USD" value="EURUSD">
+                </div>
+                <div class="form-group">
+                    <label>Dirección</label>
+                    <select id="directionSelect">
+                        <option value="CALL">📈 CALL (SUBE)</option>
+                        <option value="PUT">📉 PUT (BAJA)</option>
+                    </select>
+                </div>
+                <button class="btn-primary" id="sendSignalBtnAdmin"><i class="fas fa-broadcast-tower"></i> ENVIAR SEÑAL AHORA</button>
+                <div id="lastSignalPreview" style="margin-top: 1rem; background:#1a253c; padding: 10px; border-radius: 1rem; color:#ccd6f0;">${lastSignalPreviewText}</div>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-chart-pie"></i> Estadísticas globales</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">✅ Ganadas<span>${estadisticas.win}</span></div>
+                    <div class="stat-item">❌ Perdidas<span>${estadisticas.loss}</span></div>
+                    <div class="stat-item">🤝 Empates<span>${estadisticas.draw}</span></div>
+                    <div class="stat-item">📊 Acierto<span>${winRate}%</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-history"></i> Historial de resultados</h2>
+                <div class="result-history">
+                    <ul>${historyList || "<li>Sin registros</li>"}</ul>
+                </div>
+                <div class="button-group-row">
+                    <button class="btn-secondary" id="exportExcelAdmin"><i class="fas fa-file-excel"></i> Exportar a Excel</button>
+                    <button class="btn-danger" id="clearHistoryAdmin"><i class="fas fa-trash-alt"></i> Limpiar historial</button>
+                </div>
+                <p style="font-size: 11px; margin-top: 12px; color:#8a9bcc;">📊 Los resultados también se guardan automáticamente en <strong>Google Sheets</strong> en tiempo real.</p>
+            </div>
+        `;
+        document.getElementById("backToLandingAdmin")?.addEventListener("click", () => { currentView = "landing"; renderLanding(); });
+        document.getElementById("sendSignalBtnAdmin")?.addEventListener("click", sendSignal);
+        document.getElementById("exportExcelAdmin")?.addEventListener("click", exportToExcel);
+        document.getElementById("clearHistoryAdmin")?.addEventListener("click", clearHistoryConfirm);
+    }
+
+    function renderUserPanel() {
+        const root = document.getElementById("root");
+        const total = estadisticas.win + estadisticas.loss + estadisticas.draw;
+        const winRate = total ? ((estadisticas.win / total)*100).toFixed(1) : 0;
+        const historyList = historial.slice().reverse().slice(0, 10).map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.asset} (${s.broker}) → ${s.result.toUpperCase()}</li>`).join('');
+        
+        root.innerHTML = `
+            <div class="flex-between">
+                <button class="btn-back" id="backToLandingUser"><i class="fas fa-arrow-left"></i> Volver al inicio</button>
+                <h2 style="color:#FFD966;"><i class="fas fa-chalkboard-user"></i> Sala de Señales - Alí Binary</h2>
+            </div>
+            <div class="signal-room">
+                <h3><i class="fas fa-bell"></i> Señal en vivo</h3>
+                <div id="userSignalContent" style="margin: 10px 0;">Cargando...</div>
+                <div class="cronometro" id="userCountdown">--:--</div>
+                <button class="btn-report" id="reportResultUserBtn"><i class="fas fa-flag-checkered"></i> Reportar resultado de esta señal</button>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-trophy"></i> Estadísticas comunidad</h2>
+                <div class="stats-grid">
+                    <div class="stat-item">🏆 Ganadas<span>${estadisticas.win}</span></div>
+                    <div class="stat-item">📉 Perdidas<span>${estadisticas.loss}</span></div>
+                    <div class="stat-item">🤝 Empates<span>${estadisticas.draw}</span></div>
+                    <div class="stat-item">📈 Efectividad<span>${winRate}%</span></div>
+                </div>
+            </div>
+            <div class="card">
+                <h2><i class="fas fa-list-ul"></i> Últimas señales registradas</h2>
+                <div class="result-history">
+                    <ul>${historyList || "<li>Sin operaciones reportadas aún</li>"}</ul>
+                </div>
+                <p style="font-size: 11px; margin-top: 12px; color:#8a9bcc;">📊 Los resultados se guardan automáticamente en <strong>Google Sheets</strong> en la nube.</p>
+            </div>
+        `;
+        document.getElementById("backToLandingUser")?.addEventListener("click", () => { currentView = "landing"; renderLanding(); });
+        document.getElementById("reportResultUserBtn")?.addEventListener("click", reportResultUser);
+        
+        renderSignalForUser();
+        if(countdownInterval) clearInterval(countdownInterval);
+        startUserCountdown();
+    }
+
+    function init() {
+        loadData();
+        renderLanding();
+        document.body.addEventListener("click", () => {
+            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        });
+    }
+    init();
+</script>
 </body>
 </html>
