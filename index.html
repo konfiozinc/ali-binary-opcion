@@ -115,13 +115,12 @@
             outline: none;
         }
         
-        /* BOTONES CORREGIDOS - SIN OPACIDAD, COLORES SÓLIDOS */
+        /* BOTONES */
         button {
             width: 100%;
             padding: 16px;
             border-radius: 1rem;
             border: none;
-            background: #FF8C00;
             background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
             font-weight: bold;
             color: #000000;
@@ -129,20 +128,36 @@
             cursor: pointer;
             transition: all 0.2s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            text-shadow: none;
         }
         button:hover {
             transform: translateY(-2px);
-            background: linear-gradient(135deg, #FFC107 0%, #FFA500 100%);
+            filter: brightness(1.05);
             box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
         button:active {
             transform: translateY(1px);
         }
         
-        /* Botón de volver específico */
+        /* Botones de resultado (Admin) */
+        .result-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .btn-win {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+        }
+        .btn-loss {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+        .btn-draw {
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
+            color: white;
+        }
+        
         .back-btn {
-            background: #475569;
             background: linear-gradient(135deg, #64748b 0%, #475569 100%);
             width: auto;
             padding: 10px 24px;
@@ -239,23 +254,27 @@
             border: 1px solid #4ade80;
             z-index: 1000;
         }
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            background: #1e293b;
+            border-left: 4px solid #22c55e;
+            padding: 12px 20px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.9rem;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
         .text-center { text-align: center; }
         .mt-2 { margin-top: 1rem; }
-        
-        /* Botones de exportar y limpiar */
-        .btn-export {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-        }
-        .btn-clear {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-        }
-        .btn-report {
-            background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
-            color: black;
-            font-size: 1.2rem;
-        }
+        .mb-2 { margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -280,6 +299,16 @@
     let audioCtx = null;
     let pollingInterval = null;
     let lastSignalId = 0;
+
+    // Notificación toast (sin alert)
+    function showToast(message, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-notification';
+        toast.style.borderLeftColor = isError ? '#ef4444' : '#22c55e';
+        toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-triangle' : 'fa-check-circle'}"></i> ${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
+    }
 
     // Enviar datos a Google Sheets
     async function enviarASheets(data) {
@@ -314,7 +343,7 @@
         }
     }
 
-    // Verificar señales nuevas
+    // Verificar señales nuevas (polling cada 1 segundo - más rápido)
     async function verificarNovedades() {
         const datos = await leerDesdeSheets();
         if (!datos || !datos.success) return;
@@ -334,6 +363,7 @@
                     renderSignalForUser();
                     startUserCountdown();
                     playAlertSound();
+                    showToast('📡 Nueva señal recibida!');
                 }
             }
         }
@@ -379,24 +409,54 @@
         if (savedEst) estadisticas = JSON.parse(savedEst);
     }
 
-    async function addResultado(broker, asset, direction, result) {
-        const newReg = { broker, asset, direction, result, timestamp: Date.now() };
+    async function addResultado(result) {
+        if (!currentSignal) {
+            showToast('No hay señal activa para reportar', true);
+            return;
+        }
+        
+        let resultKey = '';
+        let resultText = '';
+        if (result === 'win') {
+            resultKey = 'win';
+            resultText = 'GANADA';
+        } else if (result === 'loss') {
+            resultKey = 'loss';
+            resultText = 'PERDIDA';
+        } else if (result === 'draw') {
+            resultKey = 'draw';
+            resultText = 'EMPATADA';
+        }
+        
+        const newReg = { 
+            broker: currentSignal.broker, 
+            asset: currentSignal.asset, 
+            direction: currentSignal.direction, 
+            result: resultKey, 
+            timestamp: Date.now() 
+        };
         historial.unshift(newReg);
-        if(result === 'win') estadisticas.win++;
-        else if(result === 'loss') estadisticas.loss++;
-        else if(result === 'draw') estadisticas.draw++;
+        if(resultKey === 'win') estadisticas.win++;
+        else if(resultKey === 'loss') estadisticas.loss++;
+        else if(resultKey === 'draw') estadisticas.draw++;
         saveLocal();
         
         await enviarASheets({
             timestamp: Date.now(),
-            broker: broker,
-            asset: asset,
-            direction: direction,
-            result: result
+            broker: currentSignal.broker,
+            asset: currentSignal.asset,
+            direction: currentSignal.direction,
+            result: resultKey
         });
         
-        if(currentView === 'user') renderUserPanel();
-        if(currentView === 'admin') renderAdminPanel();
+        showToast(`✅ Resultado registrado: ${resultText}`);
+        
+        if(currentView === 'admin') {
+            renderAdminPanel();
+        }
+        if(currentView === 'user') {
+            renderUserPanel();
+        }
     }
 
     function playAlertSound() {
@@ -468,7 +528,10 @@
         const broker = document.getElementById("brokerSelect").value;
         const asset = document.getElementById("assetInput").value.trim();
         const direction = document.getElementById("directionSelect").value;
-        if(!asset) return alert("Ingrese un activo");
+        if(!asset) {
+            showToast('Ingrese un activo válido', true);
+            return;
+        }
         
         const now = Date.now();
         currentSignal = {
@@ -489,20 +552,7 @@
         const previewDiv = document.getElementById("lastSignalPreview");
         if(previewDiv) previewDiv.innerHTML = `✅ Señal enviada: ${asset} ${direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} a las ${new Date().toLocaleTimeString()}`;
         playAlertSound();
-        alert("✅ Señal enviada a TODOS los dispositivos");
-    }
-
-    async function reportResult() {
-        if(!currentSignal) return alert("No hay señal activa");
-        const result = prompt("Resultado:\nganada / perdida / empatada", "ganada").toLowerCase();
-        let resKey = '';
-        if(result === 'ganada' || result === 'win') resKey = 'win';
-        else if(result === 'perdida' || result === 'loss') resKey = 'loss';
-        else if(result === 'empatada' || result === 'draw') resKey = 'draw';
-        else return alert("Opción inválida");
-        
-        await addResultado(currentSignal.broker, currentSignal.asset, currentSignal.direction, resKey);
-        alert("✅ Resultado registrado");
+        showToast(`📡 Señal enviada a todos los dispositivos`);
     }
 
     function exportExcel() {
@@ -517,15 +567,17 @@
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Señales");
         XLSX.writeFile(wb, `AliBinary_${new Date().toISOString().slice(0,19)}.xlsx`);
+        showToast('📎 Historial exportado a Excel');
     }
 
     function clearHistory() {
-        if(confirm("¿Eliminar todo el historial?")) {
+        if(confirm("¿Eliminar todo el historial de resultados?")) {
             historial = [];
             estadisticas = { win:0, loss:0, draw:0 };
             saveLocal();
             if(currentView === 'admin') renderAdminPanel();
             if(currentView === 'user') renderUserPanel();
+            showToast('Historial eliminado');
         }
     }
 
@@ -572,6 +624,18 @@
                 <button id="sendBtn" style="background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%); color:#000; font-size:1.2rem; padding:16px;">📡 ENVIAR SEÑAL AHORA</button>
                 <div id="lastSignalPreview" class="text-center mt-2" style="background:#1e293b; padding:10px; border-radius:1rem; color:#cbd5e1;">Esperando...</div>
             </div>
+            
+            <!-- SOLO ADMIN: Botones de resultado -->
+            <div class="card">
+                <h2><i class="fas fa-flag-checkered"></i> Reportar resultado de la señal actual</h2>
+                <div class="result-buttons">
+                    <button id="reportWinBtn" class="btn-win" style="flex:1;"><i class="fas fa-chart-line"></i> 🟢 GANADA</button>
+                    <button id="reportLossBtn" class="btn-loss" style="flex:1;"><i class="fas fa-chart-line"></i> 🔴 PERDIDA</button>
+                    <button id="reportDrawBtn" class="btn-draw" style="flex:1;"><i class="fas fa-handshake"></i> 🟡 EMPATE</button>
+                </div>
+                <div class="text-center mt-2" style="color:#94a3b8; font-size:0.8rem;">⚠️ Solo el administrador puede calificar las señales</div>
+            </div>
+            
             <div class="card">
                 <h2><i class="fas fa-chart-pie"></i> Estadísticas</h2>
                 <div class="stats-grid">
@@ -590,19 +654,19 @@
                 </div>
             </div>
         `;
-        const backBtn = document.getElementById("backBtn");
-        const sendBtn = document.getElementById("sendBtn");
-        const exportBtn = document.getElementById("exportBtn");
-        const clearBtn = document.getElementById("clearBtn");
-        if (backBtn) backBtn.onclick = () => { currentView = "landing"; renderLanding(); };
-        if (sendBtn) sendBtn.onclick = sendSignal;
-        if (exportBtn) exportBtn.onclick = exportExcel;
-        if (clearBtn) clearBtn.onclick = clearHistory;
+        document.getElementById("backBtn").onclick = () => { currentView = "landing"; renderLanding(); };
+        document.getElementById("sendBtn").onclick = sendSignal;
+        document.getElementById("exportBtn").onclick = exportExcel;
+        document.getElementById("clearBtn").onclick = clearHistory;
+        document.getElementById("reportWinBtn").onclick = () => addResultado('win');
+        document.getElementById("reportLossBtn").onclick = () => addResultado('loss');
+        document.getElementById("reportDrawBtn").onclick = () => addResultado('draw');
     }
 
     function renderUserPanel() {
         if(pollingInterval) clearInterval(pollingInterval);
-        pollingInterval = setInterval(verificarNovedades, 2000);
+        // Polling cada 1 segundo para mayor velocidad
+        pollingInterval = setInterval(verificarNovedades, 1000);
         
         const total = estadisticas.win + estadisticas.loss + estadisticas.draw;
         const winRate = total ? ((estadisticas.win / total)*100).toFixed(1) : 0;
@@ -619,7 +683,9 @@
                 <h3 style="color:#FFD966; margin-bottom:1rem;"><i class="fas fa-bell"></i> Señal en vivo</h3>
                 <div id="userSignalContent" style="margin:10px 0;">Cargando...</div>
                 <div class="cronometro" id="userCountdown">--:--</div>
-                <button id="reportBtn" style="background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%); color:#000; font-size:1.2rem; padding:16px; margin-top:10px;"><i class="fas fa-flag-checkered"></i> 📊 REPORTAR RESULTADO</button>
+                <div class="text-center mt-2" style="color:#94a3b8; font-size:0.8rem; padding:8px; background:#1e293b; border-radius:1rem;">
+                    <i class="fas fa-info-circle"></i> Los resultados son reportados por el administrador
+                </div>
             </div>
             <div class="card">
                 <h2><i class="fas fa-trophy"></i> Estadísticas comunidad</h2>
@@ -635,14 +701,11 @@
                 <div class="result-history"><ul>${historyHtml || "<li>Sin operaciones</li>"}</ul></div>
             </div>
         `;
-        const backBtn = document.getElementById("backBtn");
-        const reportBtn = document.getElementById("reportBtn");
-        if (backBtn) backBtn.onclick = () => { 
+        document.getElementById("backBtn").onclick = () => { 
             if(pollingInterval) clearInterval(pollingInterval);
             currentView = "landing"; 
             renderLanding(); 
         };
-        if (reportBtn) reportBtn.onclick = reportResult;
         
         renderSignalForUser();
         if(countdownInterval) clearInterval(countdownInterval);
