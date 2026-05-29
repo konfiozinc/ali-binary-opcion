@@ -29,18 +29,14 @@
             margin: 0 auto;
         }
 
-        .app-container {
-            width: 100%;
-        }
-
         /* Pantalla de bienvenida */
         .landing {
             text-align: center;
-            padding: 2rem;
-            background: rgba(15, 25, 45, 0.95);
-            backdrop-filter: blur(12px);
+            padding: 2.5rem;
+            background: #0f172f;
             border-radius: 2rem;
-            border: 1px solid rgba(255, 215, 0, 0.5);
+            border: 2px solid #ffb347;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         .landing h1 {
             font-size: 2.8rem;
@@ -52,7 +48,7 @@
         }
         .landing p {
             font-size: 1.1rem;
-            color: #ccd6f0;
+            color: #cbd5e1;
             margin-bottom: 2rem;
         }
         .btn-group {
@@ -64,21 +60,17 @@
         .btn-premium {
             background: linear-gradient(95deg, #FFB347, #FF8C00);
             border: none;
-            padding: 14px 32px;
+            padding: 16px 36px;
             border-radius: 60px;
             font-size: 1.2rem;
             font-weight: bold;
             color: #0a0f1e;
             cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        }
-        .btn-premium i {
-            margin-right: 10px;
+            transition: transform 0.2s;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
         }
         .btn-premium:hover {
             transform: translateY(-3px);
-            box-shadow: 0 12px 20px rgba(0,0,0,0.4);
         }
         .btn-outline {
             background: transparent;
@@ -86,13 +78,13 @@
             color: #FFD966;
         }
 
-        /* Tarjetas generales */
+        /* Tarjetas */
         .card {
             background: #0f172f;
             border-radius: 1.8rem;
             padding: 1.8rem;
             margin-bottom: 2rem;
-            border: 1px solid rgba(255,215,0,0.4);
+            border: 1px solid #ffb347;
             box-shadow: 0 20px 35px -12px rgba(0,0,0,0.5);
         }
         .card h2 {
@@ -109,38 +101,58 @@
         label {
             display: block;
             margin-bottom: 0.5rem;
-            font-weight: 500;
-            color: #e2e8f0;
+            font-weight: 600;
+            color: #f1f5f9;
         }
         select, input {
             width: 100%;
-            padding: 12px 16px;
+            padding: 14px 16px;
             border-radius: 1rem;
-            border: none;
+            border: 1px solid #ffb347;
             background: #1e293b;
             color: white;
             font-size: 1rem;
             outline: none;
         }
+        
+        /* BOTONES CORREGIDOS - SIN OPACIDAD, COLORES SÓLIDOS */
         button {
             width: 100%;
-            padding: 14px 16px;
+            padding: 16px;
             border-radius: 1rem;
             border: none;
-            background: linear-gradient(95deg, #FFB347, #FF8C00);
+            background: #FF8C00;
+            background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
             font-weight: bold;
-            color: #0a0f1e;
-            font-size: 1rem;
+            color: #000000;
+            font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            text-shadow: none;
         }
         button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, #FFC107 0%, #FFA500 100%);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
         button:active {
-            transform: scale(0.97);
+            transform: translateY(1px);
+        }
+        
+        /* Botón de volver específico */
+        .back-btn {
+            background: #475569;
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            width: auto;
+            padding: 10px 24px;
+            display: inline-block;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: white;
+        }
+        .back-btn:hover {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
         }
 
         .signal-room {
@@ -149,28 +161,29 @@
             padding: 1.5rem;
             margin-bottom: 1rem;
             border: 2px solid #ffb347;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
         }
         .signal-active-card {
-            background: linear-gradient(145deg, #1e2a3a, #0a0f1f);
+            background: #1e293b;
             border-radius: 1.5rem;
-            padding: 1.2rem;
+            padding: 1.5rem;
             font-size: 1.2rem;
             border-left: 8px solid #FFB347;
             margin-top: 0.5rem;
+            color: #f1f5f9;
         }
         .cronometro {
-            background: #000000dd;
+            background: #000000;
             border-radius: 3rem;
-            padding: 0.8rem;
+            padding: 1rem;
             text-align: center;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
             font-weight: 800;
             font-family: monospace;
-            letter-spacing: 4px;
+            letter-spacing: 6px;
             color: #00ffcc;
-            text-shadow: 0 0 8px #0fa;
+            text-shadow: 0 0 10px #0fa;
             margin: 1rem 0;
+            border: 2px solid #00ffcc;
         }
         .stats-grid {
             display: flex;
@@ -180,14 +193,15 @@
             flex-wrap: wrap;
         }
         .stat-item {
-            background: #0a0f1f;
+            background: #1e293b;
             border-radius: 1.2rem;
             padding: 1rem;
             text-align: center;
             flex: 1;
             font-weight: bold;
             font-size: 1.1rem;
-            border: 1px solid #ffb34755;
+            border: 1px solid #ffb347;
+            color: #f1f5f9;
         }
         .result-history {
             max-height: 220px;
@@ -200,16 +214,10 @@
             list-style: none;
         }
         .result-history li {
-            padding: 8px;
-            border-bottom: 1px solid #2a3650;
+            padding: 10px;
+            border-bottom: 1px solid #334155;
             font-size: 0.9rem;
-        }
-        .back-btn {
-            background: #334155;
-            width: auto;
-            padding: 8px 20px;
-            display: inline-block;
-            margin-bottom: 1rem;
+            color: #e2e8f0;
         }
         .flex-between {
             display: flex;
@@ -221,48 +229,49 @@
         .sheets-status {
             position: fixed;
             bottom: 20px;
-            left: 20px;
-            background: #0a0f1ecc;
-            backdrop-filter: blur(4px);
+            right: 20px;
+            background: #0f172f;
             border-radius: 20px;
-            padding: 6px 14px;
+            padding: 8px 16px;
             font-size: 11px;
             font-family: monospace;
-            color: #6eff9e;
-            border: 1px solid #2aff6e33;
+            color: #86efac;
+            border: 1px solid #4ade80;
             z-index: 1000;
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 #FFB347aa; }
-            70% { box-shadow: 0 0 0 15px transparent; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 1rem; }
+        
+        /* Botones de exportar y limpiar */
+        .btn-export {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
         }
-        .signal-pulse {
-            animation: pulse 0.6s ease-out;
+        .btn-clear {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
         }
-        @media (max-width: 650px) {
-            .cronometro { font-size: 1.8rem; letter-spacing: 2px; }
-            .card { padding: 1.2rem; }
-            .stat-item { font-size: 0.9rem; }
+        .btn-report {
+            background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%);
+            color: black;
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
 <div class="app-wrapper">
-    <div id="root" class="app-container"></div>
+    <div id="root"></div>
 </div>
 <div class="sheets-status" id="sheetsStatus">
-    <i class="fas fa-cloud-upload-alt"></i> Sincronizando...
+    <i class="fas fa-cloud-upload-alt"></i> Conectado
 </div>
 
 <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 <script>
-    // ========== CONFIGURACIÓN GOOGLE SHEETS ==========
-    // URL para ESCRIBIR datos (la que ya tenías)
-    const GOOGLE_SHEETS_WRITE_URL = "https://script.google.com/macros/s/AKfycbx9Acv8Iz5ro__iCVCLd_xnhj9jBKTg6K2M_zrh-0xs_ry6I9W7IbzM-Wgpdefmkvj5/exec";
-    // URL para LEER datos (la nueva que acabas de crear)
-    const GOOGLE_SHEETS_READ_URL = "https://script.google.com/macros/s/AKfycbxenlQkBrnlF0f8EOYTgpbusXtxNyQK5ggR_ghzC1DERZ3miEaKXtScT6KYCYAD_gtg/exec";
+    // ========== CONFIGURACIÓN ==========
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwH0DHyqcecGB6GD5Or8TK4poSw3E2CcFKMscDvLPl2ih_PGkLuZHJfiEmphv8Jm8UH/exec";
     
-    // ---------- ESTADO GLOBAL ----------
+    // ---------- ESTADO ----------
     let currentView = "landing";
     let historial = [];
     let estadisticas = { win: 0, loss: 0, draw: 0 };
@@ -270,153 +279,116 @@
     let countdownInterval = null;
     let audioCtx = null;
     let pollingInterval = null;
-    let ultimoTimestampSenal = 0;
+    let lastSignalId = 0;
 
-    // Función para enviar resultado a Google Sheets
-    async function enviarResultadoASheets(registro) {
+    // Enviar datos a Google Sheets
+    async function enviarASheets(data) {
         const statusDiv = document.getElementById("sheetsStatus");
         try {
-            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
-            await fetch(GOOGLE_SHEETS_WRITE_URL, {
+            statusDiv.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Enviando...';
+            await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "no-cors",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(registro)
+                body: JSON.stringify(data)
             });
-            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Google Sheets: OK';
+            statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Enviado';
             setTimeout(() => {
-                if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Sincronizado';
+                statusDiv.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Conectado';
             }, 2000);
-        } catch (error) {
-            console.error("Error:", error);
-            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Error';
+        } catch(e) {
+            statusDiv.innerHTML = '<i class="fas fa-times-circle"></i> Error';
+            console.error(e);
         }
     }
 
-    // Función para enviar NUEVA SEÑAL a la nube
-    async function enviarSenalANube(senal) {
-        const statusDiv = document.getElementById("sheetsStatus");
+    // Leer datos desde Google Sheets
+    async function leerDesdeSheets() {
         try {
-            await fetch(GOOGLE_SHEETS_WRITE_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    timestamp: senal.timestamp,
-                    broker: senal.broker,
-                    asset: senal.asset,
-                    direction: senal.direction,
-                    result: "SENAL_ACTIVA"
-                })
-            });
-            if(statusDiv) statusDiv.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Señal enviada';
-        } catch(e) { console.error("Error:", e); }
-    }
-
-    // Función para LEER la última señal desde la nube
-    async function leerUltimaSenalDesdeNube() {
-        if (!GOOGLE_SHEETS_READ_URL) {
-            console.warn("URL de lectura no configurada");
-            return null;
-        }
-        try {
-            const response = await fetch(GOOGLE_SHEETS_READ_URL);
+            const response = await fetch(SCRIPT_URL);
             const data = await response.json();
             return data;
-        } catch (error) {
-            console.error("Error leyendo de la nube:", error);
+        } catch(e) {
+            console.error("Error leyendo:", e);
             return null;
         }
     }
 
-    // Polling para verificar señales nuevas (cada 2 segundos)
-    async function verificarSenalesNuevas() {
-        const datosNube = await leerUltimaSenalDesdeNube();
-        if (datosNube && datosNube.success && datosNube.ultimaSenal) {
-            const senal = datosNube.ultimaSenal;
-            const timestampMs = senal.timestampMs;
-            
-            // Verificar si es una señal nueva (no un resultado)
-            if (timestampMs && timestampMs > ultimoTimestampSenal && (!senal.result || senal.result !== "SENAL_ACTIVA")) {
-                ultimoTimestampSenal = timestampMs;
-                const nuevaSenal = {
-                    broker: senal.broker,
-                    asset: senal.asset,
-                    direction: senal.direction,
-                    timestampEnvio: timestampMs,
-                    tiempoLimite: timestampMs + 60000
+    // Verificar señales nuevas
+    async function verificarNovedades() {
+        const datos = await leerDesdeSheets();
+        if (!datos || !datos.success) return;
+        
+        if (datos.ultimaSenal && datos.ultimaSenal.timestampMs) {
+            const signalId = datos.ultimaSenal.timestampMs;
+            if (signalId > lastSignalId) {
+                lastSignalId = signalId;
+                currentSignal = {
+                    broker: datos.ultimaSenal.broker,
+                    asset: datos.ultimaSenal.asset,
+                    direction: datos.ultimaSenal.direction,
+                    timestampEnvio: signalId,
+                    tiempoLimite: signalId + 60000
                 };
-                
-                if (!currentSignal || currentSignal.timestampEnvio !== nuevaSenal.timestampEnvio) {
-                    currentSignal = nuevaSenal;
-                    if (currentView === 'user') {
-                        renderSignalForUser();
-                        startUserCountdown();
-                        playAlertSound();
-                    }
+                if (currentView === 'user') {
+                    renderSignalForUser();
+                    startUserCountdown();
+                    playAlertSound();
                 }
             }
+        }
+        
+        if (datos.todasLasSenales && datos.todasLasSenales.length > 0) {
+            const nuevosHistorial = [];
+            let nuevasEstadisticas = { win: 0, loss: 0, draw: 0 };
             
-            // Actualizar historial y estadísticas desde la nube
-            if (datosNube.todasLasSenales && datosNube.todasLasSenales.length > 0) {
-                const nuevosHistorial = [];
-                let nuevasEstadisticas = { win: 0, loss: 0, draw: 0 };
-                
-                datosNube.todasLasSenales.forEach(s => {
-                    if (s.result && (s.result === 'win' || s.result === 'loss' || s.result === 'draw')) {
-                        nuevosHistorial.push({
-                            broker: s.broker,
-                            asset: s.asset,
-                            direction: s.direction,
-                            result: s.result,
-                            timestamp: s.timestampMs
-                        });
-                        if (s.result === 'win') nuevasEstadisticas.win++;
-                        else if (s.result === 'loss') nuevasEstadisticas.loss++;
-                        else if (s.result === 'draw') nuevasEstadisticas.draw++;
-                    }
-                });
-                
-                if (nuevosHistorial.length > 0 && nuevosHistorial.length !== historial.length) {
-                    historial = nuevosHistorial;
-                    estadisticas = nuevasEstadisticas;
-                    saveData();
-                    if (currentView === 'user') renderUserPanel();
-                    if (currentView === 'admin') renderAdminPanel();
+            datos.todasLasSenales.forEach(s => {
+                if (s.result && (s.result === 'win' || s.result === 'loss' || s.result === 'draw')) {
+                    nuevosHistorial.push({
+                        broker: s.broker,
+                        asset: s.asset,
+                        direction: s.direction,
+                        result: s.result,
+                        timestamp: s.timestampMs
+                    });
+                    if (s.result === 'win') nuevasEstadisticas.win++;
+                    else if (s.result === 'loss') nuevasEstadisticas.loss++;
+                    else if (s.result === 'draw') nuevasEstadisticas.draw++;
                 }
+            });
+            
+            if (nuevosHistorial.length !== historial.length) {
+                historial = nuevosHistorial;
+                estadisticas = nuevasEstadisticas;
+                saveLocal();
+                if (currentView === 'user') renderUserPanel();
+                if (currentView === 'admin') renderAdminPanel();
             }
         }
     }
 
-    // Cargar datos desde localStorage
-    function loadData() {
-        const saved = localStorage.getItem("aliBinarySignalsData");
-        if(saved) {
-            try {
-                const data = JSON.parse(saved);
-                historial = data.historial || [];
-                estadisticas = data.estadisticas || { win:0, loss:0, draw:0 };
-            } catch(e) {}
-        }
+    function saveLocal() {
+        localStorage.setItem("aliHistorial", JSON.stringify(historial));
+        localStorage.setItem("aliEstadisticas", JSON.stringify(estadisticas));
     }
 
-    function saveData() {
-        localStorage.setItem("aliBinarySignalsData", JSON.stringify({ historial, estadisticas }));
+    function loadLocal() {
+        const savedHist = localStorage.getItem("aliHistorial");
+        const savedEst = localStorage.getItem("aliEstadisticas");
+        if (savedHist) historial = JSON.parse(savedHist);
+        if (savedEst) estadisticas = JSON.parse(savedEst);
     }
 
-    async function addResultToHistory(broker, asset, direction, result) {
-        const newReg = { 
-            broker, asset, direction, result, 
-            timestamp: Date.now()
-        };
+    async function addResultado(broker, asset, direction, result) {
+        const newReg = { broker, asset, direction, result, timestamp: Date.now() };
         historial.unshift(newReg);
         if(result === 'win') estadisticas.win++;
         else if(result === 'loss') estadisticas.loss++;
         else if(result === 'draw') estadisticas.draw++;
-        saveData();
+        saveLocal();
         
-        await enviarResultadoASheets({
-            timestamp: newReg.timestamp,
+        await enviarASheets({
+            timestamp: Date.now(),
             broker: broker,
             asset: asset,
             direction: direction,
@@ -429,50 +401,50 @@
 
     function playAlertSound() {
         try {
-            if(!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if(!audioCtx) audioCtx = new (AudioContext || webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
             osc.frequency.value = 880;
-            gain.gain.value = 0.3;
+            gain.gain.value = 0.4;
             osc.start();
             gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1);
             osc.stop(audioCtx.currentTime + 1);
             if(audioCtx.state === 'suspended') audioCtx.resume();
-        } catch(e) { console.warn("Audio error"); }
+        } catch(e) {}
         if(navigator.vibrate) navigator.vibrate(200);
     }
 
     function renderSignalForUser() {
+        const container = document.getElementById("userSignalContent");
+        const countdownEl = document.getElementById("userCountdown");
+        
         if(!currentSignal) {
-            const container = document.getElementById("userSignalContent");
             if(container) container.innerHTML = `<div style="background:#1e293b; padding:2rem; border-radius:1.5rem; text-align:center;"><i class="fas fa-hourglass-half"></i> Esperando señal del administrador...</div>`;
-            if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = "--:--";
+            if(countdownEl) countdownEl.innerText = "--:--";
             return;
         }
-        const remaining = Math.max(0, currentSignal.tiempoLimite - Date.now());
-        const seconds = Math.ceil(remaining / 1000);
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        const timeText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
-        if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = remaining > 0 ? timeText : "00:00";
         
-        const html = `
-            <div class="signal-active-card">
-                <i class="fas fa-bullhorn" style="color:#FFB347; font-size:1.5rem;"></i> 
-                <strong style="font-size:1.2rem;">¡NUEVA SEÑAL ACTIVA!</strong><br><br>
-                <i class="fas fa-chart-line"></i> <strong>Broker:</strong> ${currentSignal.broker}<br>
-                <i class="fas fa-coins"></i> <strong>Activo:</strong> ${currentSignal.asset}<br>
-                <i class="fas ${currentSignal.direction === 'CALL' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> 
-                <strong>Dirección:</strong> ${currentSignal.direction === 'CALL' ? '📈 CALL (SUBE)' : '📉 PUT (BAJA)'}<br>
-                <small><i class="far fa-clock"></i> Enviado: ${new Date(currentSignal.timestampEnvio).toLocaleTimeString()}</small>
-            </div>
-        `;
-        const container = document.getElementById("userSignalContent");
-        if(container) container.innerHTML = html;
+        const remaining = Math.max(0, currentSignal.tiempoLimite - Date.now());
+        const mins = Math.floor(remaining / 60000);
+        const secs = Math.floor((remaining % 60000) / 1000);
+        const timeText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        if(countdownEl) countdownEl.innerText = remaining > 0 ? timeText : "00:00";
+        
+        if(container) {
+            container.innerHTML = `
+                <div class="signal-active-card">
+                    <i class="fas fa-bullhorn" style="color:#FFB347; font-size:1.8rem;"></i> 
+                    <strong style="font-size:1.3rem;">¡NUEVA SEÑAL ACTIVA!</strong><br><br>
+                    <i class="fas fa-chart-line"></i> <strong>Broker:</strong> ${currentSignal.broker}<br>
+                    <i class="fas fa-coins"></i> <strong>Activo:</strong> ${currentSignal.asset}<br>
+                    <i class="fas ${currentSignal.direction === 'CALL' ? 'fa-arrow-up' : 'fa-arrow-down'}"></i> 
+                    <strong>Dirección:</strong> ${currentSignal.direction === 'CALL' ? '📈 CALL (SUBE)' : '📉 PUT (BAJA)'}<br>
+                    <small><i class="far fa-clock"></i> Enviado: ${new Date(currentSignal.timestampEnvio).toLocaleTimeString()}</small>
+                </div>
+            `;
+        }
     }
 
     function startUserCountdown() {
@@ -483,9 +455,8 @@
                 return;
             }
             const remaining = Math.max(0, currentSignal.tiempoLimite - Date.now());
-            const seconds = Math.ceil(remaining / 1000);
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
+            const mins = Math.floor(remaining / 60000);
+            const secs = Math.floor((remaining % 60000) / 1000);
             const txt = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
             if(document.getElementById("userCountdown")) document.getElementById("userCountdown").innerText = remaining > 0 ? txt : "00:00";
         };
@@ -493,64 +464,48 @@
         countdownInterval = setInterval(update, 1000);
     }
 
-    // ADMIN: enviar señal
     async function sendSignal() {
         const broker = document.getElementById("brokerSelect").value;
         const asset = document.getElementById("assetInput").value.trim();
         const direction = document.getElementById("directionSelect").value;
-        if(!asset) return alert("Ingrese un activo válido");
+        if(!asset) return alert("Ingrese un activo");
+        
         const now = Date.now();
-        const tiempoLimite = now + 60000;
-        const newSignal = {
+        currentSignal = {
             broker, asset, direction,
             timestampEnvio: now,
-            tiempoLimite: tiempoLimite
+            tiempoLimite: now + 60000
         };
-        currentSignal = newSignal;
-        ultimoTimestampSenal = now;
+        lastSignalId = now;
         
-        // Guardar en la nube
-        await enviarSenalANube({
+        await enviarASheets({
             timestamp: now,
             broker: broker,
             asset: asset,
-            direction: direction
+            direction: direction,
+            result: "SENAL_ACTIVA"
         });
-        
-        if(currentView === 'user') {
-            renderSignalForUser();
-            startUserCountdown();
-            playAlertSound();
-        }
         
         const previewDiv = document.getElementById("lastSignalPreview");
         if(previewDiv) previewDiv.innerHTML = `✅ Señal enviada: ${asset} ${direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} a las ${new Date().toLocaleTimeString()}`;
         playAlertSound();
-        
-        alert("✅ Señal enviada a TODOS los usuarios (todos los dispositivos)");
+        alert("✅ Señal enviada a TODOS los dispositivos");
     }
 
-    async function reportResultUser() {
-        if(!currentSignal) {
-            alert("No hay señal activa para reportar.");
-            return;
-        }
-        const result = prompt("Resultado de la operación:\nEscribe: ganada / perdida / empatada", "ganada").toLowerCase();
+    async function reportResult() {
+        if(!currentSignal) return alert("No hay señal activa");
+        const result = prompt("Resultado:\nganada / perdida / empatada", "ganada").toLowerCase();
         let resKey = '';
         if(result === 'ganada' || result === 'win') resKey = 'win';
         else if(result === 'perdida' || result === 'loss') resKey = 'loss';
         else if(result === 'empatada' || result === 'draw') resKey = 'draw';
-        else {
-            alert("Opción no válida. Usa: ganada, perdida o empatada");
-            return;
-        }
-        await addResultToHistory(currentSignal.broker, currentSignal.asset, currentSignal.direction, resKey);
-        alert(`✅ Resultado registrado en local y en Google Sheets.`);
-        if(currentView === 'user') renderUserPanel();
-        if(currentView === 'admin') renderAdminPanel();
+        else return alert("Opción inválida");
+        
+        await addResultado(currentSignal.broker, currentSignal.asset, currentSignal.direction, resKey);
+        alert("✅ Resultado registrado");
     }
 
-    function exportToExcel() {
+    function exportExcel() {
         const dataRows = historial.map(s => ({
             Fecha: new Date(s.timestamp).toLocaleString(),
             Broker: s.broker,
@@ -560,23 +515,24 @@
         }));
         const ws = XLSX.utils.json_to_sheet(dataRows);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Señales_AliBinary");
+        XLSX.utils.book_append_sheet(wb, ws, "Señales");
         XLSX.writeFile(wb, `AliBinary_${new Date().toISOString().slice(0,19)}.xlsx`);
     }
 
-    function clearHistoryConfirm() {
-        if(confirm("¿Eliminar TODO el historial de resultados y estadísticas?")) {
+    function clearHistory() {
+        if(confirm("¿Eliminar todo el historial?")) {
             historial = [];
             estadisticas = { win:0, loss:0, draw:0 };
-            saveData();
+            saveLocal();
             if(currentView === 'admin') renderAdminPanel();
             if(currentView === 'user') renderUserPanel();
         }
     }
 
-    // Renderizado de vistas
+    // ========== VISTAS ==========
     function renderLanding() {
         const root = document.getElementById("root");
+        if (!root) return;
         root.innerHTML = `
             <div class="landing">
                 <i class="fas fa-chart-line" style="font-size: 4rem; color:#FFB347;"></i>
@@ -586,53 +542,38 @@
                     <button class="btn-premium" id="goAdminBtn"><i class="fas fa-lock"></i> Acceso Admin</button>
                     <button class="btn-premium btn-outline" id="goUserBtn"><i class="fas fa-users"></i> Acceso Usuarios</button>
                 </div>
-                <div style="margin-top: 2rem; font-size: 0.8rem; opacity:0.7;">
-                    <i class="fas fa-chart-simple"></i> Estadísticas en tiempo real • Alertas sonoras • Control en Google Sheets
-                </div>
+                <div class="text-center mt-2" style="color:#94a3b8;">Alertas sonoras • Sincronización en tiempo real • Google Sheets</div>
             </div>
         `;
-        document.getElementById("goAdminBtn")?.addEventListener("click", () => { currentView = "admin"; renderAdminPanel(); });
-        document.getElementById("goUserBtn")?.addEventListener("click", () => { currentView = "user"; renderUserPanel(); });
+        const goAdminBtn = document.getElementById("goAdminBtn");
+        const goUserBtn = document.getElementById("goUserBtn");
+        if (goAdminBtn) goAdminBtn.onclick = () => { currentView = "admin"; renderAdminPanel(); };
+        if (goUserBtn) goUserBtn.onclick = () => { currentView = "user"; renderUserPanel(); };
     }
 
     function renderAdminPanel() {
         if(pollingInterval) clearInterval(pollingInterval);
-        
-        const root = document.getElementById("root");
         const total = estadisticas.win + estadisticas.loss + estadisticas.draw;
         const winRate = total ? ((estadisticas.win / total)*100).toFixed(1) : 0;
-        const historyList = historial.slice().map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.broker} ${s.asset} | ${s.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} → ${s.result.toUpperCase()}</li>`).join('');
+        const historyHtml = historial.slice().map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.broker} ${s.asset} | ${s.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)'} → ${s.result.toUpperCase()}</li>`).join('');
         
+        const root = document.getElementById("root");
+        if (!root) return;
         root.innerHTML = `
             <div class="flex-between">
-                <button class="back-btn" id="backToLandingAdmin"><i class="fas fa-arrow-left"></i> Volver al inicio</button>
-                <h2 style="color:#FFD966;"><i class="fas fa-crown"></i> Panel Administrador</h2>
+                <button class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Volver</button>
+                <h2 style="color:#FFD966;"><i class="fas fa-crown"></i> Panel Admin</h2>
             </div>
             <div class="card">
-                <h2><i class="fas fa-paper-plane"></i> Enviar nueva señal</h2>
-                <div class="form-group">
-                    <label>Broker</label>
-                    <select id="brokerSelect">
-                        <option value="IQ Option">IQ Option</option>
-                        <option value="Exnova">Exnova</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Par/Activo</label>
-                    <input type="text" id="assetInput" placeholder="EURUSD, BTC/USD" value="EURUSD">
-                </div>
-                <div class="form-group">
-                    <label>Dirección</label>
-                    <select id="directionSelect">
-                        <option value="CALL">📈 CALL (SUBE)</option>
-                        <option value="PUT">📉 PUT (BAJA)</option>
-                    </select>
-                </div>
-                <button id="sendSignalBtnAdmin" style="background: linear-gradient(95deg, #FFB347, #FF8C00); font-weight:bold; font-size:1.1rem;">📡 ENVIAR SEÑAL AHORA</button>
-                <div id="lastSignalPreview" style="margin-top: 1rem; background:#1e293b; padding: 10px; border-radius: 1rem; text-align:center;">Esperando enviar señal...</div>
+                <h2><i class="fas fa-paper-plane"></i> Enviar señal</h2>
+                <div class="form-group"><label>Broker</label><select id="brokerSelect"><option>IQ Option</option><option>Exnova</option></select></div>
+                <div class="form-group"><label>Activo</label><input id="assetInput" placeholder="EURUSD" value="EURUSD"></div>
+                <div class="form-group"><label>Dirección</label><select id="directionSelect"><option value="CALL">📈 CALL (SUBE)</option><option value="PUT">📉 PUT (BAJA)</option></select></div>
+                <button id="sendBtn" style="background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%); color:#000; font-size:1.2rem; padding:16px;">📡 ENVIAR SEÑAL AHORA</button>
+                <div id="lastSignalPreview" class="text-center mt-2" style="background:#1e293b; padding:10px; border-radius:1rem; color:#cbd5e1;">Esperando...</div>
             </div>
             <div class="card">
-                <h2><i class="fas fa-chart-pie"></i> Estadísticas globales</h2>
+                <h2><i class="fas fa-chart-pie"></i> Estadísticas</h2>
                 <div class="stats-grid">
                     <div class="stat-item">✅ Ganadas: ${estadisticas.win}</div>
                     <div class="stat-item">❌ Perdidas: ${estadisticas.loss}</div>
@@ -641,42 +582,44 @@
                 </div>
             </div>
             <div class="card">
-                <h2><i class="fas fa-history"></i> Historial de resultados</h2>
-                <div class="result-history">
-                    <ul>${historyList || "<li>Sin registros</li>"}</ul>
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                    <button id="exportExcelAdmin" style="background:#2c3e66;">📎 Exportar a Excel</button>
-                    <button id="clearHistoryAdmin" style="background:#7f1d1d;">🗑️ Limpiar historial</button>
+                <h2><i class="fas fa-history"></i> Historial</h2>
+                <div class="result-history"><ul>${historyHtml || "<li>Sin registros</li>"}</ul></div>
+                <div style="display:flex; gap:1rem; margin-top:1rem;">
+                    <button id="exportBtn" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color:white;">📎 Exportar Excel</button>
+                    <button id="clearBtn" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:white;">🗑️ Limpiar</button>
                 </div>
             </div>
         `;
-        document.getElementById("backToLandingAdmin")?.addEventListener("click", () => { currentView = "landing"; renderLanding(); });
-        document.getElementById("sendSignalBtnAdmin")?.addEventListener("click", sendSignal);
-        document.getElementById("exportExcelAdmin")?.addEventListener("click", exportToExcel);
-        document.getElementById("clearHistoryAdmin")?.addEventListener("click", clearHistoryConfirm);
+        const backBtn = document.getElementById("backBtn");
+        const sendBtn = document.getElementById("sendBtn");
+        const exportBtn = document.getElementById("exportBtn");
+        const clearBtn = document.getElementById("clearBtn");
+        if (backBtn) backBtn.onclick = () => { currentView = "landing"; renderLanding(); };
+        if (sendBtn) sendBtn.onclick = sendSignal;
+        if (exportBtn) exportBtn.onclick = exportExcel;
+        if (clearBtn) clearBtn.onclick = clearHistory;
     }
 
     function renderUserPanel() {
-        // Iniciar polling para recibir señales en tiempo real
         if(pollingInterval) clearInterval(pollingInterval);
-        pollingInterval = setInterval(verificarSenalesNuevas, 2000);
+        pollingInterval = setInterval(verificarNovedades, 2000);
         
-        const root = document.getElementById("root");
         const total = estadisticas.win + estadisticas.loss + estadisticas.draw;
         const winRate = total ? ((estadisticas.win / total)*100).toFixed(1) : 0;
-        const historyList = historial.slice(0, 10).map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.asset} (${s.broker}) → ${s.result.toUpperCase()}</li>`).join('');
+        const historyHtml = historial.slice(0, 10).map(s => `<li>${s.result === 'win' ? '✅' : (s.result === 'loss' ? '❌' : '🤝')} ${new Date(s.timestamp).toLocaleTimeString()} | ${s.asset} (${s.broker}) → ${s.result.toUpperCase()}</li>`).join('');
         
+        const root = document.getElementById("root");
+        if (!root) return;
         root.innerHTML = `
             <div class="flex-between">
-                <button class="back-btn" id="backToLandingUser"><i class="fas fa-arrow-left"></i> Volver al inicio</button>
+                <button class="back-btn" id="backBtn"><i class="fas fa-arrow-left"></i> Volver</button>
                 <h2 style="color:#FFD966;"><i class="fas fa-chalkboard-user"></i> Sala de Señales - Alí Binary</h2>
             </div>
             <div class="signal-room">
                 <h3 style="color:#FFD966; margin-bottom:1rem;"><i class="fas fa-bell"></i> Señal en vivo</h3>
-                <div id="userSignalContent" style="margin: 10px 0;">Cargando...</div>
+                <div id="userSignalContent" style="margin:10px 0;">Cargando...</div>
                 <div class="cronometro" id="userCountdown">--:--</div>
-                <button id="reportResultUserBtn" style="background: linear-gradient(95deg, #FFB347, #FF8C00); margin-top: 10px; font-size:1.1rem;"><i class="fas fa-flag-checkered"></i> 📊 Reportar resultado de esta señal</button>
+                <button id="reportBtn" style="background: linear-gradient(135deg, #FFB347 0%, #FF8C00 100%); color:#000; font-size:1.2rem; padding:16px; margin-top:10px;"><i class="fas fa-flag-checkered"></i> 📊 REPORTAR RESULTADO</button>
             </div>
             <div class="card">
                 <h2><i class="fas fa-trophy"></i> Estadísticas comunidad</h2>
@@ -688,37 +631,31 @@
                 </div>
             </div>
             <div class="card">
-                <h2><i class="fas fa-list-ul"></i> Últimas señales registradas</h2>
-                <div class="result-history">
-                    <ul>${historyList || "<li>Sin operaciones reportadas aún</li>"}</ul>
-                </div>
+                <h2><i class="fas fa-list-ul"></i> Últimas señales</h2>
+                <div class="result-history"><ul>${historyHtml || "<li>Sin operaciones</li>"}</ul></div>
             </div>
         `;
-        document.getElementById("backToLandingUser")?.addEventListener("click", () => { 
+        const backBtn = document.getElementById("backBtn");
+        const reportBtn = document.getElementById("reportBtn");
+        if (backBtn) backBtn.onclick = () => { 
             if(pollingInterval) clearInterval(pollingInterval);
             currentView = "landing"; 
             renderLanding(); 
-        });
-        document.getElementById("reportResultUserBtn")?.addEventListener("click", reportResultUser);
+        };
+        if (reportBtn) reportBtn.onclick = reportResult;
         
         renderSignalForUser();
         if(countdownInterval) clearInterval(countdownInterval);
         startUserCountdown();
     }
 
-    // Inicializar
-    function init() {
-        loadData();
-        renderLanding();
-        document.body.addEventListener("click", () => {
-            if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        });
-        // Cargar datos iniciales desde la nube
-        setTimeout(() => {
-            verificarSenalesNuevas();
-        }, 1000);
-    }
-    init();
+    // Inicio
+    loadLocal();
+    renderLanding();
+    document.body.addEventListener("click", () => {
+        if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    });
+    setTimeout(verificarNovedades, 1000);
 </script>
 </body>
 </html>
