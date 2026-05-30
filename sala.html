@@ -264,6 +264,37 @@ body{
 }
 .conn-state.ok{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--green);display:flex;align-items:center;gap:6px;}
 
+/* ROBOT */
+.robot-wrap{
+  display:flex;justify-content:center;margin-bottom:24px;
+}
+.robot{
+  font-size:72px;
+  animation:robotFloat 3s ease-in-out infinite;
+  filter:drop-shadow(0 0 20px rgba(245,158,11,0.5));
+  cursor:default;user-select:none;
+}
+@keyframes robotFloat{
+  0%,100%{transform:translateY(0) rotate(-3deg);}
+  50%{transform:translateY(-12px) rotate(3deg);}
+}
+.robot-eyes{
+  animation:blink 4s infinite;
+}
+@keyframes blink{
+  0%,90%,100%{opacity:1;}
+  95%{opacity:0;}
+}
+.entry-time-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:8px 20px;border-radius:999px;
+  background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.4);
+  font-size:14px;font-weight:700;color:var(--gold);
+  font-family:'DM Mono',monospace;letter-spacing:1.5px;
+  margin-bottom:16px;animation:entryPulse 1.5s infinite;
+}
+@keyframes entryPulse{0%,100%{border-color:rgba(245,158,11,0.4);}50%{border-color:rgba(245,158,11,0.9);}}
+
 /* SOUND BTN */
 .sound-overlay{
   position:fixed;inset:0;z-index:999;
@@ -310,7 +341,7 @@ body{
 <body>
 <!-- SOUND OVERLAY -->
 <div class="sound-overlay" id="soundOverlay">
-  <div class="brand-icon" style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:8px;">📈</div>
+  <div class="robot" style="font-size:90px;margin-bottom:0;">🤖</div>
   <div class="sound-title">Ali Binary Options<br>Sala Premium</div>
   <div class="sound-sub">Toca para activar señales y sonido</div>
   <button class="btn-sound" onclick="activateSound()">🔔 ACTIVAR SALA</button>
@@ -337,6 +368,7 @@ body{
 
   <!-- HERO -->
   <div class="hero">
+    <div class="robot-wrap"><div class="robot">🤖</div></div>
     <h1>Sala Premium</h1>
     <p>SEÑALES EN TIEMPO REAL · M1</p>
     <div class="broker-tags">
@@ -494,13 +526,15 @@ async function poll(){
     const data = await res.json();
     if (data && data.id) {
       handleData({
-        signalId:  data.id,
-        asset:     data.asset,
-        direction: data.direction,
-        broker:    data.broker,
-        status:    data.result ? 'RESULT' : 'SIGNAL',
-        result:    data.result || null,
-        resultId:  data.result ? (data.id + '_r') : null
+        signalId:      data.id,
+        asset:         data.asset,
+        direction:     data.direction,
+        broker:        data.broker,
+        entryTime:     data.entryTime || null,
+        countdownSecs: data.countdownSecs || 60,
+        status:        data.result ? 'RESULT' : 'SIGNAL',
+        result:        data.result || null,
+        resultId:      data.result ? (data.id + '_r') : null
       });
     }
     setConnState(true);
@@ -517,7 +551,7 @@ function handleData(data){
     state.lastSignalId = data.signalId;
     state.currentSignal = data;
     state.awaitingResult = true;
-    showSignal(data.asset, data.direction, data.broker);
+    showSignal(data.asset, data.direction, data.broker, data.entryTime, data.countdownSecs);
     saveLocalState();
   }
 
@@ -531,7 +565,7 @@ function handleData(data){
 }
 
 // ── SHOW SIGNAL ──────────────────────────────────────────
-function showSignal(asset, dir, broker){
+function showSignal(asset, dir, broker, entryTime, countdownSecs){
   // Update UI
   document.getElementById('signalBadgeText').textContent = 'SEÑAL ACTIVA';
   document.getElementById('signalAsset').textContent = asset;
@@ -549,18 +583,33 @@ function showSignal(asset, dir, broker){
     ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(245,158,11,0.25)';
   bl.style.color = broker==='IQ Option' ? '#93c5fd' : 'var(--gold2)';
 
+  // Show entry time badge if provided
+  let etBadge = document.getElementById('entryTimeBadge');
+  if(!etBadge){
+    etBadge = document.createElement('div');
+    etBadge.id = 'entryTimeBadge';
+    document.getElementById('signalDir').after(etBadge);
+  }
+  if(entryTime){
+    etBadge.className = 'entry-time-badge';
+    etBadge.innerHTML = '🕐 OPERAR A LAS ' + entryTime;
+    etBadge.style.display = 'inline-flex';
+  } else {
+    etBadge.style.display = 'none';
+  }
+
   document.getElementById('resultBanner').style.display = 'none';
   document.getElementById('operateBanner').style.display = 'none';
 
   playAlert();
-  startTimer();
+  startTimer(countdownSecs || 60);
 }
 
 // ── TIMER ────────────────────────────────────────────────
-function startTimer(){
+function startTimer(secs){
   clearInterval(state.timerInterval);
-  state.timerSecs = 60;
-  state.timerMax  = 60;
+  state.timerSecs = secs || 60;
+  state.timerMax  = secs || 60;
   renderTimer();
   state.timerInterval = setInterval(()=>{
     state.timerSecs--;
