@@ -398,8 +398,8 @@ body{
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────
-const READ_URL = 'https://script.google.com/macros/s/AKfycbwsFKEbPXvfNWfMvVQvuLx0stIjYchz_uRNAtpu5BZJtGV-FiqBGbIEDzpXVcard6tt/exec';
-const POLL_INTERVAL = 4000; // ms
+const FB_URL = 'https://ali-binary-options-default-rtdb.firebaseio.com';
+const POLL_INTERVAL = 3000; // ms
 
 // ── PARTICLES ───────────────────────────────────────────
 const pc = document.getElementById('particles');
@@ -443,23 +443,27 @@ if(ls){
 renderStats();
 renderHistory();
 
-// ── POLLING via JSONP ────────────────────────────────────
-function poll(){
-  const cbName = 'cb' + Date.now();
-  const s = document.createElement('script');
-  const t = setTimeout(()=>{
-    window[cbName]=()=>{};
-    setConnState(false);
-  }, 7000);
-  window[cbName] = function(data){
-    clearTimeout(t);
-    delete window[cbName];
-    handleData(data);
+// ── POLLING via Firebase REST ─────────────────────────────
+async function poll(){
+  try {
+    const res = await fetch(FB_URL + '/signal.json?t=' + Date.now());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (data && data.id) {
+      handleData({
+        signalId:  data.id,
+        asset:     data.asset,
+        direction: data.direction,
+        broker:    data.broker,
+        status:    data.result ? 'RESULT' : 'SIGNAL',
+        result:    data.result || null,
+        resultId:  data.result ? (data.id + '_r') : null
+      });
+    }
     setConnState(true);
-  };
-  s.src = READ_URL + '?callback=' + cbName + '&t=' + Date.now();
-  s.onerror = ()=>{ clearTimeout(t); setConnState(false); };
-  document.head.appendChild(s);
+  } catch(e) {
+    setConnState(false);
+  }
 }
 
 function handleData(data){
