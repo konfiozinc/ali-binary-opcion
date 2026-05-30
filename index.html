@@ -1,1508 +1,280 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Alí Binary Options — Señales Premium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-    <style>
-        :root {
-            --gold: #F5A623;
-            --gold-light: #FFD080;
-            --gold-dark: #C47A00;
-            --green: #00E5A0;
-            --red: #FF4A6B;
-            --yellow: #FFD600;
-            --bg: #060A12;
-            --bg2: #0C1220;
-            --bg3: #111827;
-            --surface: #141E2E;
-            --surface2: #1A2540;
-            --border: rgba(245,166,35,0.18);
-            --border-bright: rgba(245,166,35,0.5);
-            --text: #EDF2FF;
-            --text-muted: #6B7FA3;
-            --text-dim: #4A5568;
-            --radius: 1.4rem;
-            --radius-sm: 0.8rem;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ali Binary Options PRO — Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #f59e0b;
+  --gold2: #fbbf24;
+  --orange: #f97316;
+  --green: #10b981;
+  --red: #ef4444;
+  --bg: #040911;
+  --surface: rgba(15,22,40,0.85);
+  --border: rgba(245,158,11,0.15);
+  --text: #e2e8f0;
+  --muted: #64748b;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+.bg-grid {
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+  z-index: 0;
+}
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 20%, rgba(245,158,11,0.08), transparent),
+    radial-gradient(ellipse 50% 50% at 80% 80%, rgba(16,185,129,0.06), transparent),
+    radial-gradient(ellipse 80% 60% at 50% 50%, rgba(249,115,22,0.04), transparent);
+  z-index: 0;
+}
+/* Floating particles */
+.particles { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+.particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: float linear infinite;
+  opacity: 0;
+}
+@keyframes float {
+  0% { transform: translateY(100vh) scale(0); opacity: 0; }
+  10% { opacity: 0.6; }
+  90% { opacity: 0.2; }
+  100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
+}
+.wrap {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 440px;
+  padding: 20px;
+  animation: fadeUp 0.7s ease both;
+}
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.brand {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.brand-icon {
+  width: 72px; height: 72px;
+  border-radius: 22px;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px;
+  margin: 0 auto 18px;
+  box-shadow: 0 0 40px rgba(245,158,11,0.35);
+  animation: iconPulse 3s ease-in-out infinite;
+}
+@keyframes iconPulse {
+  0%,100% { box-shadow: 0 0 30px rgba(245,158,11,0.3); }
+  50%      { box-shadow: 0 0 60px rgba(245,158,11,0.55); }
+}
+.brand h1 {
+  font-size: 28px; font-weight: 800;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, #fff 40%, var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.brand p {
+  color: var(--muted); font-size: 13px; margin-top: 6px;
+  font-family: 'DM Mono', monospace; letter-spacing: 1px;
+}
+.live-badge {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 5px 12px; border-radius: 999px;
+  background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3);
+  font-size: 11px; color: var(--green); font-family: 'DM Mono', monospace;
+  margin-top: 12px; letter-spacing: 1px;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 8px var(--green); animation: pulse 1.2s infinite; }
+@keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.6);} }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: var(--bg);
-            min-height: 100vh;
-            font-family: 'Syne', sans-serif;
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding: 24px 16px 60px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* ── Fondo atmosférico ── */
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background:
-                radial-gradient(ellipse 80% 40% at 10% 0%, rgba(245,166,35,0.07) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 60% at 90% 100%, rgba(0,229,160,0.04) 0%, transparent 60%);
-            pointer-events: none; z-index: 0;
-        }
-        body::after {
-            content: '';
-            position: fixed; inset: 0;
-            background-image: repeating-linear-gradient(
-                0deg, transparent, transparent 59px,
-                rgba(245,166,35,0.025) 59px, rgba(245,166,35,0.025) 60px
-            ), repeating-linear-gradient(
-                90deg, transparent, transparent 59px,
-                rgba(245,166,35,0.025) 59px, rgba(245,166,35,0.025) 60px
-            );
-            pointer-events: none; z-index: 0;
-        }
-
-        .app-wrapper {
-            max-width: 780px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
-        /* ══════════════════════════════
-           LANDING
-        ══════════════════════════════ */
-        .landing {
-            text-align: center;
-            padding: 4rem 2.5rem 3.5rem;
-            background: var(--surface);
-            border-radius: 2rem;
-            border: 1px solid var(--border-bright);
-            box-shadow: 0 0 60px rgba(245,166,35,0.08), 0 40px 80px rgba(0,0,0,0.5);
-            position: relative;
-            overflow: hidden;
-        }
-        .landing::before {
-            content: '';
-            position: absolute;
-            top: -60px; left: 50%; transform: translateX(-50%);
-            width: 300px; height: 300px;
-            background: radial-gradient(circle, rgba(245,166,35,0.12), transparent 70%);
-            pointer-events: none;
-        }
-        .brand-logo {
-            width: 72px; height: 72px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 1.4rem;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            box-shadow: 0 8px 32px rgba(245,166,35,0.35);
-            position: relative;
-        }
-        .landing h1 {
-            font-size: 2.8rem;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, var(--gold-light), var(--gold), #C47A00);
-            -webkit-background-clip: text; background-clip: text; color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        .landing-sub {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
-        }
-        .badge-row {
-            display: flex; gap: 10px; justify-content: center;
-            flex-wrap: wrap; margin-bottom: 2.5rem;
-        }
-        .badge {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: 99px;
-            padding: 5px 14px;
-            font-size: 0.78rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            display: flex; align-items: center; gap: 6px;
-        }
-        .badge i { color: var(--gold); font-size: 0.7rem; }
-        .btn-group { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-        .btn-primary {
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            border: none;
-            padding: 16px 38px;
-            border-radius: 99px;
-            font-size: 1rem;
-            font-weight: 700;
-            font-family: 'Syne', sans-serif;
-            color: #06090F;
-            cursor: pointer;
-            transition: all 0.25s;
-            box-shadow: 0 6px 24px rgba(245,166,35,0.35);
-            display: inline-flex; align-items: center; gap: 8px;
-            position: relative; overflow: hidden;
-        }
-        .btn-primary::after {
-            content: '';
-            position: absolute; inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transform: translateX(-100%);
-            transition: transform 0.4s;
-        }
-        .btn-primary:hover::after { transform: translateX(100%); }
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 32px rgba(245,166,35,0.5);
-        }
-        .btn-secondary {
-            background: transparent;
-            border: 2px solid var(--border-bright);
-            color: var(--gold-light);
-        }
-        .btn-secondary:hover {
-            background: rgba(245,166,35,0.1);
-            border-color: var(--gold);
-        }
-
-        /* ══════════════════════════════
-           CARDS
-        ══════════════════════════════ */
-        .card {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 1.8rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
-            transition: border-color 0.2s;
-        }
-        .card:hover { border-color: var(--border-bright); }
-        .card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--gold-light);
-            display: flex; align-items: center; gap: 10px;
-            margin-bottom: 1.4rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-        .card-title i { color: var(--gold); }
-
-        /* ══════════════════════════════
-           TOP BAR
-        ══════════════════════════════ */
-        .top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap; gap: 10px;
-        }
-        .page-title {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--gold-light);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .back-btn {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text-muted);
-            padding: 8px 18px;
-            border-radius: 99px;
-            font-size: 0.85rem;
-            font-family: 'Syne', sans-serif;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex; align-items: center; gap: 7px;
-        }
-        .back-btn:hover {
-            border-color: var(--gold);
-            color: var(--gold-light);
-            background: rgba(245,166,35,0.08);
-        }
-
-        /* ══════════════════════════════
-           FORMULARIOS
-        ══════════════════════════════ */
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        .form-group label {
-            display: block;
-            font-size: 0.8rem;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            margin-bottom: 6px;
-        }
-        select, input[type="text"], input[type="password"], input[type="number"] {
-            width: 100%;
-            padding: 13px 16px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--border);
-            background: var(--bg2);
-            color: var(--text);
-            font-size: 0.95rem;
-            font-family: 'Syne', sans-serif;
-            outline: none;
-            transition: all 0.2s;
-            appearance: none;
-        }
-        select:focus, input:focus {
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(245,166,35,0.15);
-        }
-        select option { background: var(--bg3); }
-        input[list] { cursor: text; }
-
-        /* ══════════════════════════════
-           BOTONES ACCIÓN
-        ══════════════════════════════ */
-        .btn-send {
-            width: 100%;
-            padding: 16px;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-dark) 100%);
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #06090F;
-            cursor: pointer;
-            transition: all 0.25s;
-            box-shadow: 0 4px 16px rgba(245,166,35,0.3);
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            letter-spacing: 0.03em;
-        }
-        .btn-send:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(245,166,35,0.45);
-            filter: brightness(1.06);
-        }
-        .btn-send:disabled {
-            opacity: 0.4; cursor: not-allowed; transform: none;
-        }
-        .result-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px;
-            margin-top: 0.8rem;
-        }
-        .btn-result {
-            padding: 14px 8px;
-            border: none; border-radius: var(--radius-sm);
-            font-family: 'Syne', sans-serif;
-            font-size: 0.9rem; font-weight: 700;
-            cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .btn-win { background: linear-gradient(135deg, #00E5A0, #00B87A); color: #052A1A; }
-        .btn-loss { background: linear-gradient(135deg, #FF4A6B, #D93257); color: #1A020A; }
-        .btn-draw { background: linear-gradient(135deg, #FFD600, #C9A800); color: #1A1400; }
-        .btn-result:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.08); }
-        .btn-result:disabled { opacity: 0.35; cursor: not-allowed; }
-
-        /* ══════════════════════════════
-           SALA DE SEÑALES (usuario)
-        ══════════════════════════════ */
-        .signal-room {
-            background: var(--bg2);
-            border: 2px solid var(--gold);
-            border-radius: var(--radius);
-            padding: 1.8rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-        .signal-room::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, var(--gold), transparent);
-        }
-        .signal-room-title {
-            font-size: 0.78rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--gold);
-            text-transform: uppercase; letter-spacing: 0.1em;
-            margin-bottom: 1rem;
-            display: flex; align-items: center; gap: 6px;
-        }
-        .signal-room-title::before {
-            content: '';
-            width: 7px; height: 7px;
-            background: var(--green);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--green);
-            animation: blink 1.5s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* Señal activa card */
-        .signal-card {
-            background: var(--surface);
-            border-radius: var(--radius-sm);
-            padding: 1.4rem;
-            border-left: 4px solid var(--gold);
-        }
-        .signal-card-header {
-            font-size: 0.72rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-muted);
-            text-transform: uppercase; letter-spacing: 0.08em;
-            margin-bottom: 0.8rem;
-        }
-        .signal-asset {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--text);
-            letter-spacing: -1px;
-            margin-bottom: 4px;
-        }
-        .signal-dir {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 8px 18px;
-            border-radius: 99px;
-            font-size: 0.95rem; font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
-            margin: 8px 0;
-        }
-        .signal-dir.call {
-            background: rgba(0,229,160,0.12);
-            border: 1px solid rgba(0,229,160,0.35);
-            color: var(--green);
-        }
-        .signal-dir.put {
-            background: rgba(255,74,107,0.12);
-            border: 1px solid rgba(255,74,107,0.35);
-            color: var(--red);
-        }
-        .signal-meta {
-            font-size: 0.8rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-dim);
-            margin-top: 8px;
-        }
-
-        /* Cronómetro */
-        .cronometro {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 3.5rem;
-            font-weight: 700;
-            text-align: center;
-            letter-spacing: 6px;
-            color: var(--green);
-            text-shadow: 0 0 20px rgba(0,229,160,0.5);
-            padding: 1rem;
-            margin: 1rem 0;
-            background: var(--bg);
-            border-radius: var(--radius-sm);
-            border: 1px solid rgba(0,229,160,0.2);
-        }
-        .cronometro.urgent {
-            color: var(--red);
-            text-shadow: 0 0 20px rgba(255,74,107,0.5);
-            border-color: rgba(255,74,107,0.2);
-            animation: shake 0.5s infinite;
-        }
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
-        }
-
-        /* Mensaje espera */
-        .waiting-msg {
-            text-align: center;
-            padding: 2.5rem 1rem;
-        }
-        .waiting-msg .w-icon {
-            font-size: 2.5rem;
-            color: var(--text-dim);
-            margin-bottom: 1rem;
-            display: block;
-            animation: float 3s ease-in-out infinite;
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-        .waiting-msg p { color: var(--text-muted); font-size: 0.95rem; }
-        .waiting-msg small { color: var(--text-dim); font-size: 0.8rem; margin-top: 4px; display: block; }
-
-        /* ══════════════════════════════
-           ESTADÍSTICAS
-        ══════════════════════════════ */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-        }
-        .stat-card {
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.2s;
-        }
-        .stat-card:hover { border-color: var(--border-bright); }
-        .stat-val {
-            font-size: 1.8rem;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            display: block;
-            margin-bottom: 4px;
-        }
-        .stat-label {
-            font-size: 0.7rem;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-dim);
-            text-transform: uppercase; letter-spacing: 0.06em;
-        }
-        .stat-win .stat-val { color: var(--green); }
-        .stat-loss .stat-val { color: var(--red); }
-        .stat-draw .stat-val { color: var(--yellow); }
-        .stat-rate .stat-val { color: var(--gold); }
-
-        /* ══════════════════════════════
-           HISTORIAL
-        ══════════════════════════════ */
-        .history-list {
-            max-height: 260px;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--border) transparent;
-        }
-        .history-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 12px;
-            border-radius: var(--radius-sm);
-            margin-bottom: 4px;
-            font-size: 0.85rem;
-            transition: background 0.15s;
-            border: 1px solid transparent;
-        }
-        .history-item:hover { background: var(--surface2); border-color: var(--border); }
-        .history-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%; flex-shrink: 0;
-        }
-        .history-dot.win { background: var(--green); box-shadow: 0 0 6px var(--green); }
-        .history-dot.loss { background: var(--red); box-shadow: 0 0 6px var(--red); }
-        .history-dot.draw { background: var(--yellow); box-shadow: 0 0 6px var(--yellow); }
-        .history-time {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem; color: var(--text-dim);
-            min-width: 55px; flex-shrink: 0;
-        }
-        .history-asset { font-weight: 700; color: var(--text); flex: 1; }
-        .history-dir {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-        }
-        .history-dir.call { color: var(--green); }
-        .history-dir.put { color: var(--red); }
-        .history-result {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            font-weight: 700;
-            min-width: 55px; text-align: right;
-        }
-        .history-result.win { color: var(--green); }
-        .history-result.loss { color: var(--red); }
-        .history-result.draw { color: var(--yellow); }
-        .history-empty {
-            text-align: center;
-            color: var(--text-dim);
-            padding: 2rem;
-            font-size: 0.85rem;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* ══════════════════════════════
-           BOTONES SECUNDARIOS
-        ══════════════════════════════ */
-        .btn-row { display: flex; gap: 10px; margin-top: 1rem; }
-        .btn-sm {
-            flex: 1;
-            padding: 10px 14px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-family: 'Syne', sans-serif;
-            font-size: 0.85rem; font-weight: 600;
-            cursor: pointer; transition: all 0.2s;
-            background: var(--surface2);
-            color: var(--text-muted);
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-        }
-        .btn-sm:hover { border-color: var(--border-bright); color: var(--gold-light); }
-        .btn-sm.danger:hover { border-color: var(--red); color: var(--red); }
-
-        /* ══════════════════════════════
-           SEÑAL ADMIN PREVIEW
-        ══════════════════════════════ */
-        .admin-signal-preview {
-            margin-top: 1rem;
-            padding: 14px 16px;
-            border-radius: var(--radius-sm);
-            background: var(--bg2);
-            border: 1px solid var(--border);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .admin-signal-preview.active { border-color: rgba(0,229,160,0.4); color: var(--green); }
-        .admin-signal-preview.expired { border-color: var(--border); color: var(--text-dim); }
-
-        /* Admin countdown mini */
-        .admin-countdown {
-            display: inline-block;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 99px;
-            padding: 3px 12px;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.78rem;
-            color: var(--gold);
-        }
-
-        /* ══════════════════════════════
-           MODAL PIN
-        ══════════════════════════════ */
-        .modal-overlay {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.75);
-            backdrop-filter: blur(6px);
-            z-index: 9000;
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px;
-        }
-        .modal {
-            background: var(--surface);
-            border: 1px solid var(--border-bright);
-            border-radius: var(--radius);
-            padding: 2.5rem 2rem;
-            width: 100%; max-width: 380px;
-            text-align: center;
-            box-shadow: 0 40px 80px rgba(0,0,0,0.6);
-            position: relative;
-        }
-        .modal-icon {
-            width: 60px; height: 60px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 1rem;
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 1.2rem;
-            font-size: 1.6rem;
-            color: #06090F;
-        }
-        .modal h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.4rem; }
-        .modal p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem; }
-        .pin-input {
-            display: flex; gap: 10px; justify-content: center;
-            margin-bottom: 1.5rem;
-        }
-        .pin-digit {
-            width: 52px; height: 60px;
-            background: var(--bg2);
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 1.8rem; font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--gold);
-            text-align: center;
-            outline: none;
-            transition: all 0.2s;
-            caret-color: var(--gold);
-        }
-        .pin-digit:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,166,35,0.2); }
-        .pin-error {
-            background: rgba(255,74,107,0.1);
-            border: 1px solid rgba(255,74,107,0.3);
-            border-radius: var(--radius-sm);
-            padding: 10px;
-            color: var(--red);
-            font-size: 0.82rem;
-            margin-bottom: 1rem;
-            display: none;
-        }
-        .pin-error.visible { display: block; }
-        .attempt-dots {
-            display: flex; gap: 6px; justify-content: center; margin-bottom: 1.5rem;
-        }
-        .attempt-dot {
-            width: 8px; height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            transition: all 0.3s;
-        }
-        .attempt-dot.used { background: var(--red); }
-
-        /* ══════════════════════════════
-           MODAL CONFIRMAR SEÑAL
-        ══════════════════════════════ */
-        .confirm-signal {
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            padding: 1.2rem;
-            margin-bottom: 1.2rem;
-            text-align: left;
-        }
-        .confirm-row {
-            display: flex; justify-content: space-between;
-            align-items: center;
-            padding: 6px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.85rem;
-        }
-        .confirm-row:last-child { border-bottom: none; }
-        .confirm-row span:first-child {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-        }
-        .confirm-row strong { color: var(--text); }
-        .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-        /* ══════════════════════════════
-           STATUS / TOAST
-        ══════════════════════════════ */
-        .conn-status {
-            position: fixed;
-            bottom: 20px; right: 20px;
-            background: var(--surface);
-            border: 1px solid;
-            border-radius: 99px;
-            padding: 7px 16px;
-            font-size: 0.72rem;
-            font-family: 'JetBrains Mono', monospace;
-            z-index: 1000;
-            display: flex; align-items: center; gap: 6px;
-            transition: all 0.3s;
-        }
-        .conn-status.connected { border-color: rgba(0,229,160,0.4); color: var(--green); }
-        .conn-status.sending { border-color: rgba(245,166,35,0.4); color: var(--gold); }
-        .conn-status.error { border-color: rgba(255,74,107,0.4); color: var(--red); }
-        .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-        .conn-dot.pulse { animation: blink 1s infinite; }
-
-        .toast {
-            position: fixed;
-            bottom: 70px; right: 20px;
-            background: var(--surface);
-            border-left: 3px solid var(--green);
-            padding: 12px 20px;
-            border-radius: var(--radius-sm);
-            font-size: 0.88rem;
-            font-weight: 600;
-            z-index: 5000;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-            animation: toastIn 0.3s cubic-bezier(0.2,0.9,0.4,1.1);
-            max-width: 300px;
-        }
-        .toast.error { border-left-color: var(--red); }
-        .toast.warn { border-left-color: var(--yellow); }
-        @keyframes toastIn {
-            from { transform: translateX(110%) scale(0.9); opacity: 0; }
-            to { transform: translateX(0) scale(1); opacity: 1; }
-        }
-
-        /* ══════════════════════════════
-           LOCKOUT
-        ══════════════════════════════ */
-        .lockout-msg {
-            background: rgba(255,74,107,0.08);
-            border: 1px solid rgba(255,74,107,0.25);
-            border-radius: var(--radius-sm);
-            padding: 12px 16px;
-            color: var(--red);
-            font-size: 0.85rem;
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .lockout-msg strong { display: block; font-size: 1.1rem; }
-
-        /* ══════════════════════════════
-           RESPONSIVE
-        ══════════════════════════════ */
-        @media (max-width: 600px) {
-            .form-row { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .result-buttons { grid-template-columns: 1fr 1fr 1fr; }
-            .cronometro { font-size: 2.5rem; letter-spacing: 4px; }
-            .landing h1 { font-size: 2.2rem; }
-            .pin-digit { width: 44px; height: 52px; font-size: 1.5rem; }
-        }
-        @media (max-width: 380px) {
-            .result-buttons { grid-template-columns: 1fr; }
-            .stats-grid { grid-template-columns: repeat(2,1fr); }
-        }
-    </style>
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 36px 32px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.tabs {
+  display: flex; gap: 6px;
+  background: rgba(0,0,0,0.3); border-radius: 14px; padding: 5px;
+  margin-bottom: 28px;
+}
+.tab {
+  flex: 1; padding: 11px; border-radius: 10px; border: none;
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s; color: var(--muted);
+  background: transparent; letter-spacing: 0.5px;
+}
+.tab.active { background: linear-gradient(135deg, var(--gold), var(--orange)); color: #000; }
+.form-group { margin-bottom: 18px; }
+.form-group label {
+  display: block; font-size: 12px; font-weight: 700; letter-spacing: 1px;
+  color: var(--muted); margin-bottom: 8px; font-family: 'DM Mono', monospace;
+  text-transform: uppercase;
+}
+.form-group input {
+  width: 100%; padding: 14px 18px;
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; color: var(--text); font-size: 15px;
+  font-family: 'DM Mono', monospace; outline: none; transition: border 0.2s;
+}
+.form-group input:focus { border-color: rgba(245,158,11,0.5); }
+.form-group input::placeholder { color: rgba(100,116,139,0.5); }
+.btn-enter {
+  width: 100%; padding: 16px; border: none; border-radius: 16px;
+  font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+  cursor: pointer; transition: all 0.3s; letter-spacing: 0.5px;
+  background: linear-gradient(135deg, var(--gold), var(--orange));
+  color: #000; margin-top: 8px;
+  box-shadow: 0 8px 30px rgba(245,158,11,0.3);
+}
+.btn-enter:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(245,158,11,0.45); }
+.btn-enter:active { transform: translateY(0); }
+.btn-user {
+  background: linear-gradient(135deg, var(--green), #059669);
+  box-shadow: 0 8px 30px rgba(16,185,129,0.25);
+  color: #fff;
+}
+.btn-user:hover { box-shadow: 0 12px 40px rgba(16,185,129,0.4); }
+.error-msg {
+  color: var(--red); font-size: 13px; margin-top: 10px;
+  text-align: center; font-family: 'DM Mono', monospace;
+  display: none; padding: 10px; background: rgba(239,68,68,0.1);
+  border-radius: 10px; border: 1px solid rgba(239,68,68,0.2);
+}
+#userPanel { display: none; text-align: center; }
+#userPanel p { color: var(--muted); font-size: 14px; margin-bottom: 24px; line-height: 1.6; }
+.footer-note {
+  text-align: center; margin-top: 20px;
+  color: var(--muted); font-size: 11px; font-family: 'DM Mono', monospace;
+}
+/* Admin credentials hint */
+.hint { font-size: 11px; color: rgba(100,116,139,0.4); text-align:center; margin-top:8px; font-family:'DM Mono',monospace; }
+</style>
 </head>
 <body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+<div class="particles" id="particles"></div>
 
-<div class="app-wrapper">
-    <div id="root"></div>
-</div>
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-icon">📈</div>
+    <h1>Ali Binary Options</h1>
+    <p>PREMIUM TRADING SIGNALS</p>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      SISTEMA EN VIVO
+    </div>
+  </div>
 
-<!-- Estado de conexión -->
-<div class="conn-status connected" id="connStatus">
-    <span class="conn-dot"></span>
-    <span id="connText">Conectado</span>
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabAdmin" onclick="showTab('admin')">🔐 ADMIN</button>
+      <button class="tab" id="tabUser" onclick="showTab('user')">📊 USUARIO</button>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="adminPanel">
+      <div class="form-group">
+        <label>Correo electrónico</label>
+        <input type="email" id="adminEmail" placeholder="admin@alibinary.com" value="admin@alibinary.com">
+      </div>
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input type="password" id="adminPass" placeholder="••••••••" value="admin123">
+      </div>
+      <div class="error-msg" id="adminError">Credenciales incorrectas</div>
+      <button class="btn-enter" onclick="loginAdmin()">ENTRAR COMO ADMIN</button>
+      <div class="hint">Demo: admin@alibinary.com / admin123</div>
+    </div>
+
+    <!-- User Panel -->
+    <div id="userPanel">
+      <p>Accede a la Sala Premium para recibir señales en tiempo real de IQ Option y Exnova.</p>
+      <button class="btn-enter btn-user" onclick="loginUser()">ENTRAR A SALA PREMIUM</button>
+    </div>
+  </div>
+
+  <div class="footer-note">Ali Binary Options © 2026 — v2.0 PRO</div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════
-//  CONFIGURACIÓN — edita solo este bloque
-// ═══════════════════════════════════════════════════════
-const CONFIG = {
-    // URL del Google Apps Script (cámbiala por la tuya)
-    SCRIPT_URL: "https://script.google.com/macros/s/AKfycbwH0DHyqcecGB6GD5Or8TK4poSw3E2CcFKMscDvLPl2ih_PGkLuZHJfiEmphv8Jm8UH/exec",
-    
-    // PIN del administrador (4 dígitos)
-    ADMIN_PIN: "1234",
-    
-    // Máx. intentos fallidos antes de bloqueo temporal
-    MAX_PIN_ATTEMPTS: 3,
-    
-    // Tiempo de bloqueo en segundos
-    LOCKOUT_SECONDS: 60,
-    
-    // Intervalo de polling para usuarios (ms) — 5 segundos
-    POLL_INTERVAL: 5000,
-    
-    // Duración predeterminada de señal (ms)
-    SIGNAL_DURATION_DEFAULT: 60000,
-    
-    // Activos sugeridos
-    ASSETS: ["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","USDCAD","NZDUSD",
-             "EURCAD","GBPJPY","EURJPY","XAUUSD","XAGUSD","US100","SP500","BTCUSD"]
-};
-
-// ═══════════════════════════════════════════════════════
-//  ESTADO GLOBAL
-// ═══════════════════════════════════════════════════════
-let state = {
-    view: "landing",      // landing | admin | user
-    signal: null,         // señal activa
-    history: [],
-    stats: { win:0, loss:0, draw:0 },
-    lastSignalId: 0,
-    pollingTimer: null,
-    countdownTimer: null,
-    audioCtx: null,
-    pinAttempts: 0,
-    lockedUntil: 0,
-    adminCountdownTimer: null,
-};
-
-// ═══════════════════════════════════════════════════════
-//  PERSISTENCIA LOCAL
-// ═══════════════════════════════════════════════════════
-function saveLocal() {
-    try {
-        localStorage.setItem("ali_hist", JSON.stringify(state.history));
-        localStorage.setItem("ali_stats", JSON.stringify(state.stats));
-        localStorage.setItem("ali_sigId", state.lastSignalId);
-        localStorage.setItem("ali_sig", JSON.stringify(state.signal));
-        localStorage.setItem("ali_lock", state.lockedUntil);
-        localStorage.setItem("ali_attempts", state.pinAttempts);
-    } catch(e) {}
-}
-function loadLocal() {
-    try {
-        const h = localStorage.getItem("ali_hist");
-        const s = localStorage.getItem("ali_stats");
-        const i = localStorage.getItem("ali_sigId");
-        const sig = localStorage.getItem("ali_sig");
-        const lk = localStorage.getItem("ali_lock");
-        const at = localStorage.getItem("ali_attempts");
-        if(h) state.history = JSON.parse(h);
-        if(s) state.stats = JSON.parse(s);
-        if(i) state.lastSignalId = parseInt(i) || 0;
-        if(sig) {
-            const parsed = JSON.parse(sig);
-            // Solo restaurar si no expiró
-            if(parsed && parsed.tiempoLimite && parsed.tiempoLimite > Date.now()) {
-                state.signal = parsed;
-            }
-        }
-        if(lk) state.lockedUntil = parseInt(lk) || 0;
-        if(at) state.pinAttempts = parseInt(at) || 0;
-    } catch(e) {}
+// Particles
+const pc = document.getElementById('particles');
+for(let i=0;i<25;i++){
+  const p = document.createElement('div');
+  p.className='particle';
+  p.style.left = Math.random()*100+'%';
+  p.style.animationDuration = (8+Math.random()*12)+'s';
+  p.style.animationDelay = (-Math.random()*20)+'s';
+  p.style.width = p.style.height = (1+Math.random()*3)+'px';
+  pc.appendChild(p);
 }
 
-// ═══════════════════════════════════════════════════════
-//  GOOGLE SHEETS
-// ═══════════════════════════════════════════════════════
-async function enviarSheets(data) {
-    setConnStatus('sending');
-    try {
-        await fetch(CONFIG.SCRIPT_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-        setConnStatus('connected');
-    } catch(e) {
-        setConnStatus('error');
-        console.error("Error enviando a Sheets:", e);
-    }
+function showTab(t){
+  document.getElementById('adminPanel').style.display = t==='admin'?'block':'none';
+  document.getElementById('userPanel').style.display = t==='user'?'block':'none';
+  document.getElementById('tabAdmin').classList.toggle('active', t==='admin');
+  document.getElementById('tabUser').classList.toggle('active', t==='user');
 }
 
-async function leerSheets() {
-    try {
-        const r = await fetch(CONFIG.SCRIPT_URL);
-        const d = await r.json();
-        setConnStatus('connected');
-        return d;
-    } catch(e) {
-        setConnStatus('error');
-        return null;
-    }
+function loginAdmin(){
+  const email = document.getElementById('adminEmail').value;
+  const pass  = document.getElementById('adminPass').value;
+  const err   = document.getElementById('adminError');
+  if(email==='admin@alibinary.com' && pass==='admin123'){
+    err.style.display='none';
+    sessionStorage.setItem('ali_role','admin');
+    window.location.href='admin.html';
+  } else {
+    err.style.display='block';
+  }
 }
 
-function setConnStatus(status) {
-    const el = document.getElementById("connStatus");
-    const txt = document.getElementById("connText");
-    if(!el) return;
-    el.className = `conn-status ${status}`;
-    const dot = el.querySelector('.conn-dot');
-    if(status === 'connected') { txt.textContent = 'Conectado'; dot.classList.remove('pulse'); }
-    else if(status === 'sending') { txt.textContent = 'Enviando…'; dot.classList.add('pulse'); }
-    else { txt.textContent = 'Sin conexión'; dot.classList.remove('pulse'); }
+function loginUser(){
+  sessionStorage.setItem('ali_role','user');
+  window.location.href='sala.html';
 }
 
-// ═══════════════════════════════════════════════════════
-//  POLLING (solo vista usuario)
-// ═══════════════════════════════════════════════════════
-async function verificarNovedades() {
-    const datos = await leerSheets();
-    if(!datos || !datos.success) return;
-
-    // ─ nueva señal ─
-    if(datos.ultimaSenal && datos.ultimaSenal.timestampMs) {
-        const id = datos.ultimaSenal.timestampMs;
-        if(id > state.lastSignalId) {
-            state.lastSignalId = id;
-            const dur = datos.ultimaSenal.duracion ? datos.ultimaSenal.duracion * 1000 : CONFIG.SIGNAL_DURATION_DEFAULT;
-            state.signal = {
-                broker: datos.ultimaSenal.broker,
-                asset: datos.ultimaSenal.asset,
-                direction: datos.ultimaSenal.direction,
-                timestampEnvio: id,
-                tiempoLimite: id + dur
-            };
-            saveLocal();
-            if(state.view === 'user') {
-                renderSignalForUser();
-                startUserCountdown();
-                playAlert();
-                toast('📡 Nueva señal recibida');
-            }
-        }
-    }
-
-    // ─ historial ─
-    if(datos.todasLasSenales && datos.todasLasSenales.length > 0) {
-        const nuevas = [];
-        const est = { win:0, loss:0, draw:0 };
-        datos.todasLasSenales.forEach(s => {
-            if(s.result && ['win','loss','draw'].includes(s.result)) {
-                nuevas.push({ broker:s.broker, asset:s.asset, direction:s.direction, result:s.result, timestamp:s.timestampMs });
-                est[s.result]++;
-            }
-        });
-        if(nuevas.length !== state.history.length) {
-            state.history = nuevas;
-            state.stats = est;
-            saveLocal();
-            if(state.view === 'user') refreshUserStats();
-        }
-    }
-}
-
-function startPolling() {
-    stopPolling();
-    state.pollingTimer = setInterval(verificarNovedades, CONFIG.POLL_INTERVAL);
-}
-function stopPolling() {
-    if(state.pollingTimer) { clearInterval(state.pollingTimer); state.pollingTimer = null; }
-}
-
-// ═══════════════════════════════════════════════════════
-//  AUDIO
-// ═══════════════════════════════════════════════════════
-function playAlert(freq = 880, duration = 1.0) {
-    try {
-        if(!state.audioCtx) state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if(state.audioCtx.state === 'suspended') state.audioCtx.resume();
-        const osc = state.audioCtx.createOscillator();
-        const gain = state.audioCtx.createGain();
-        osc.connect(gain); gain.connect(state.audioCtx.destination);
-        osc.frequency.value = freq;
-        osc.type = 'sine';
-        gain.gain.setValueAtTime(0.35, state.audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.00001, state.audioCtx.currentTime + duration);
-        osc.start(); osc.stop(state.audioCtx.currentTime + duration);
-    } catch(e) {}
-    if(navigator.vibrate) navigator.vibrate([200, 50, 200]);
-}
-
-// ═══════════════════════════════════════════════════════
-//  TOAST
-// ═══════════════════════════════════════════════════════
-let toastTimer = null;
-function toast(msg, type = 'ok') {
-    document.querySelectorAll('.toast').forEach(e => e.remove());
-    const el = document.createElement('div');
-    el.className = `toast ${type === 'error' ? 'error' : type === 'warn' ? 'warn' : ''}`;
-    el.innerHTML = msg;
-    document.body.appendChild(el);
-    if(toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.remove(), 3000);
-}
-
-// ═══════════════════════════════════════════════════════
-//  LÓGICA DE SEÑAL
-// ═══════════════════════════════════════════════════════
-async function enviarSenal(broker, asset, direction, duracion) {
-    const now = Date.now();
-    const dur = duracion * 1000;
-    state.signal = { broker, asset, direction, timestampEnvio: now, tiempoLimite: now + dur };
-    state.lastSignalId = now;
-    saveLocal();
-
-    await enviarSheets({ timestamp: now, broker, asset, direction, duracion, result: "SENAL_ACTIVA" });
-
-    // actualizar preview admin
-    updateAdminSignalPreview();
-    startAdminCountdown();
-    playAlert();
-    toast(`📡 Señal enviada: ${asset} ${direction}`);
-}
-
-async function registrarResultado(result) {
-    if(!state.signal) { toast('⚠️ No hay señal activa', 'error'); return; }
-    const map = { win:'GANADA', loss:'PERDIDA', draw:'EMPATE' };
-    const reg = { broker: state.signal.broker, asset: state.signal.asset, direction: state.signal.direction, result, timestamp: Date.now() };
-    state.history.unshift(reg);
-    state.stats[result]++;
-    saveLocal();
-
-    await enviarSheets({ timestamp: Date.now(), broker: state.signal.broker, asset: state.signal.asset, direction: state.signal.direction, result });
-    toast(`✅ Resultado: ${map[result]}`);
-    playAlert(result === 'win' ? 660 : 330, 0.6);
-
-    refreshAdminStats();
-    refreshAdminHistory();
-}
-
-// ═══════════════════════════════════════════════════════
-//  EXPORTAR EXCEL
-// ═══════════════════════════════════════════════════════
-function exportExcel() {
-    if(state.history.length === 0) { toast('Sin datos para exportar', 'warn'); return; }
-    const rows = state.history.map(s => ({
-        Fecha: new Date(s.timestamp).toLocaleString(),
-        Broker: s.broker,
-        Activo: s.asset,
-        Dirección: s.direction === 'CALL' ? 'CALL (SUBE)' : 'PUT (BAJA)',
-        Resultado: s.result === 'win' ? 'GANADA' : s.result === 'loss' ? 'PERDIDA' : 'EMPATADA'
-    }));
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Señales");
-    XLSX.writeFile(wb, `AliBinary_${new Date().toISOString().slice(0,16).replace('T','_')}.xlsx`);
-    toast('📎 Exportado a Excel');
-}
-
-function limpiarHistorial() {
-    if(!confirm('¿Eliminar todo el historial? Esta acción no se puede deshacer.')) return;
-    state.history = [];
-    state.stats = { win:0, loss:0, draw:0 };
-    saveLocal();
-    refreshAdminStats();
-    refreshAdminHistory();
-    toast('🗑️ Historial eliminado', 'warn');
-}
-
-// ═══════════════════════════════════════════════════════
-//  HELPERS RENDER
-// ═══════════════════════════════════════════════════════
-function winRate() {
-    const total = state.stats.win + state.stats.loss + state.stats.draw;
-    return total ? ((state.stats.win / total)*100).toFixed(1) : '0.0';
-}
-
-function historyItemHtml(s) {
-    const time = new Date(s.timestamp).toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit'});
-    const dirClass = s.direction === 'CALL' ? 'call' : 'put';
-    const dirLabel = s.direction === 'CALL' ? '↑ CALL' : '↓ PUT';
-    const resMap = { win:'WIN', loss:'LOSS', draw:'DRAW' };
-    return `
-        <div class="history-item">
-            <span class="history-dot ${s.result}"></span>
-            <span class="history-time">${time}</span>
-            <span class="history-asset">${s.asset} <span style="font-size:0.7rem;color:var(--text-dim);">${s.broker}</span></span>
-            <span class="history-dir ${dirClass}">${dirLabel}</span>
-            <span class="history-result ${s.result}">${resMap[s.result]}</span>
-        </div>`;
-}
-
-// ═══════════════════════════════════════════════════════
-//  VISTAS
-// ═══════════════════════════════════════════════════════
-
-/* ── LANDING ── */
-function renderLanding() {
-    stopPolling();
-    state.view = "landing";
-    document.getElementById("root").innerHTML = `
-        <div class="landing">
-            <div class="brand-logo"><i class="fas fa-chart-line"></i></div>
-            <h1>Alí Binary Options</h1>
-            <p class="landing-sub">Comunidad profesional de señales a 1 minuto<br>IQ Option &amp; Exnova</p>
-            <div class="badge-row">
-                <span class="badge"><i class="fas fa-bolt"></i> Tiempo real</span>
-                <span class="badge"><i class="fas fa-bell"></i> Alertas sonoras</span>
-                <span class="badge"><i class="fas fa-table"></i> Google Sheets</span>
-                <span class="badge"><i class="fas fa-file-excel"></i> Exportar Excel</span>
-            </div>
-            <div class="btn-group">
-                <button class="btn-primary" id="btnAdmin"><i class="fas fa-crown"></i> Acceso Admin</button>
-                <button class="btn-primary btn-secondary" id="btnUser"><i class="fas fa-users"></i> Sala de Señales</button>
-            </div>
-        </div>`;
-    document.getElementById("btnAdmin").onclick = () => showPinModal();
-    document.getElementById("btnUser").onclick = () => renderUserPanel();
-}
-
-/* ── MODAL PIN ── */
-function showPinModal() {
-    // ¿bloqueado?
-    if(Date.now() < state.lockedUntil) {
-        const secs = Math.ceil((state.lockedUntil - Date.now()) / 1000);
-        toast(`🔒 Bloqueado. Espera ${secs}s`, 'error');
-        return;
-    }
-
-    const remaining = CONFIG.MAX_PIN_ATTEMPTS - state.pinAttempts;
-    const dotsHtml = Array.from({length: CONFIG.MAX_PIN_ATTEMPTS}, (_,i) =>
-        `<div class="attempt-dot ${i >= remaining ? 'used' : ''}"></div>`
-    ).join('');
-
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.id = 'pinOverlay';
-    overlay.innerHTML = `
-        <div class="modal">
-            <div class="modal-icon"><i class="fas fa-lock"></i></div>
-            <h3>Panel Administrador</h3>
-            <p>Ingresa el PIN de 4 dígitos para continuar</p>
-            <div class="pin-input" id="pinInputRow">
-                <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p0" autocomplete="off">
-                <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p1" autocomplete="off">
-                <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p2" autocomplete="off">
-                <input class="pin-digit" type="password" maxlength="1" inputmode="numeric" id="p3" autocomplete="off">
-            </div>
-            <div class="attempt-dots">${dotsHtml}</div>
-            <div class="pin-error" id="pinError">PIN incorrecto. Intentos restantes: ${remaining - 1}</div>
-            <button class="btn-send" id="btnPinOk"><i class="fas fa-arrow-right"></i> Acceder</button>
-            <button class="btn-sm" style="width:100%;margin-top:8px;" id="btnPinCancel">Cancelar</button>
-        </div>`;
-    document.body.appendChild(overlay);
-
-    // auto-focus y auto-avance
-    const inputs = [0,1,2,3].map(i => document.getElementById(`p${i}`));
-    inputs.forEach((inp, idx) => {
-        inp.addEventListener('input', () => {
-            inp.value = inp.value.replace(/\D/g, '').slice(-1);
-            if(inp.value && idx < 3) inputs[idx+1].focus();
-            if(inp.value && idx === 3) submitPin();
-        });
-        inp.addEventListener('keydown', e => {
-            if(e.key === 'Backspace' && !inp.value && idx > 0) inputs[idx-1].focus();
-            if(e.key === 'Enter') submitPin();
-        });
-    });
-    inputs[0].focus();
-
-    document.getElementById("btnPinOk").onclick = submitPin;
-    document.getElementById("btnPinCancel").onclick = closePinModal;
-    overlay.addEventListener('click', e => { if(e.target === overlay) closePinModal(); });
-}
-
-function closePinModal() {
-    const el = document.getElementById("pinOverlay");
-    if(el) el.remove();
-}
-
-function submitPin() {
-    const inputs = [0,1,2,3].map(i => document.getElementById(`p${i}`));
-    const pin = inputs.map(i => i.value).join('');
-    if(pin.length < 4) { toast('Ingresa los 4 dígitos', 'warn'); return; }
-
-    if(pin === CONFIG.ADMIN_PIN) {
-        state.pinAttempts = 0;
-        saveLocal();
-        closePinModal();
-        renderAdminPanel();
-    } else {
-        state.pinAttempts++;
-        saveLocal();
-        if(state.pinAttempts >= CONFIG.MAX_PIN_ATTEMPTS) {
-            state.lockedUntil = Date.now() + CONFIG.LOCKOUT_SECONDS * 1000;
-            saveLocal();
-            closePinModal();
-            toast(`🔒 Demasiados intentos. Bloqueado ${CONFIG.LOCKOUT_SECONDS}s`, 'error');
-            // auto-reset después del bloqueo
-            setTimeout(() => { state.pinAttempts = 0; state.lockedUntil = 0; saveLocal(); }, CONFIG.LOCKOUT_SECONDS * 1000);
-        } else {
-            const rem = CONFIG.MAX_PIN_ATTEMPTS - state.pinAttempts;
-            const errEl = document.getElementById("pinError");
-            if(errEl) { errEl.className = 'pin-error visible'; errEl.textContent = `PIN incorrecto. Intentos restantes: ${rem}`; }
-            inputs.forEach(i => { i.value = ''; i.style.borderColor = 'var(--red)'; });
-            setTimeout(() => inputs.forEach(i => i.style.borderColor = ''), 600);
-            inputs[0].focus();
-            // actualizar dots
-            const dots = document.querySelectorAll('.attempt-dot');
-            dots.forEach((d,i) => { if(i >= rem) d.classList.add('used'); });
-        }
-    }
-}
-
-/* ── MODAL CONFIRMAR SEÑAL ── */
-function showConfirmSignal(broker, asset, direction, duracion) {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.id = 'confirmOverlay';
-    const dirLabel = direction === 'CALL' ? '📈 CALL (SUBE)' : '📉 PUT (BAJA)';
-    overlay.innerHTML = `
-        <div class="modal">
-            <div class="modal-icon" style="background:linear-gradient(135deg,${direction==='CALL'?'#00E5A0,#00B87A':'#FF4A6B,#D93257'});"><i class="fas fa-${direction==='CALL'?'arrow-up':'arrow-down'}"></i></div>
-            <h3>Confirmar señal</h3>
-            <p>Revisa los datos antes de enviar</p>
-            <div class="confirm-signal">
-                <div class="confirm-row"><span>Broker</span><strong>${broker}</strong></div>
-                <div class="confirm-row"><span>Activo</span><strong>${asset}</strong></div>
-                <div class="confirm-row"><span>Dirección</span><strong>${dirLabel}</strong></div>
-                <div class="confirm-row"><span>Duración</span><strong>${duracion} minuto${duracion>1?'s':''}</strong></div>
-            </div>
-            <div class="modal-btns">
-                <button class="btn-sm" id="btnConfirmNo" style="padding:14px;"><i class="fas fa-times"></i> Cancelar</button>
-                <button class="btn-send" style="border-radius:var(--radius-sm);" id="btnConfirmSi"><i class="fas fa-paper-plane"></i> Enviar</button>
-            </div>
-        </div>`;
-    document.body.appendChild(overlay);
-    document.getElementById("btnConfirmNo").onclick = () => overlay.remove();
-    document.getElementById("btnConfirmSi").onclick = async () => {
-        overlay.remove();
-        await enviarSenal(broker, asset, direction, duracion);
-    };
-    overlay.addEventListener('click', e => { if(e.target === overlay) overlay.remove(); });
-}
-
-/* ── PANEL ADMIN ── */
-function renderAdminPanel() {
-    stopPolling();
-    state.view = "admin";
-    const root = document.getElementById("root");
-    root.innerHTML = `
-        <div class="top-bar">
-            <button class="back-btn" id="btnBack"><i class="fas fa-arrow-left"></i> Inicio</button>
-            <div class="page-title"><i class="fas fa-crown" style="color:var(--gold);"></i> Panel Admin</div>
-        </div>
-
-        <!-- Enviar señal -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-paper-plane"></i> Enviar señal</div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Broker</label>
-                    <select id="aBroker">
-                        <option>IQ Option</option>
-                        <option>Exnova</option>
-                        <option>Quotex</option>
-                        <option>Olymp Trade</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Activo</label>
-                    <input type="text" id="aAsset" list="assetList" placeholder="EURUSD" value="${state.signal?.asset || 'EURUSD'}" autocomplete="off">
-                    <datalist id="assetList">${CONFIG.ASSETS.map(a=>`<option value="${a}">`).join('')}</datalist>
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Dirección</label>
-                    <select id="aDir">
-                        <option value="CALL">📈 CALL (SUBE)</option>
-                        <option value="PUT">📉 PUT (BAJA)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Duración (min)</label>
-                    <select id="aDur">
-                        <option value="1">1 minuto</option>
-                        <option value="2">2 minutos</option>
-                        <option value="5">5 minutos</option>
-                        <option value="15">15 minutos</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn-send" id="btnSend"><i class="fas fa-paper-plane"></i> REVISAR Y ENVIAR SEÑAL</button>
-            <div class="admin-signal-preview ${state.signal ? 'active' : 'expired'}" id="adminPreview">
-                ${state.signal ? `<i class="fas fa-circle" style="color:var(--green);font-size:0.6rem;"></i> Señal activa: ${state.signal.asset} ${state.signal.direction} &nbsp;<span class="admin-countdown" id="adminCd">--</span>` : '<i class="fas fa-minus"></i> Sin señal activa'}
-            </div>
-        </div>
-
-        <!-- Calificar resultado -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-flag-checkered"></i> Calificar resultado</div>
-            <div class="result-buttons">
-                <button class="btn-result btn-win" id="btnWin" ${!state.signal ? 'disabled' : ''}><i class="fas fa-check"></i> GANADA</button>
-                <button class="btn-result btn-loss" id="btnLoss" ${!state.signal ? 'disabled' : ''}><i class="fas fa-times"></i> PERDIDA</button>
-                <button class="btn-result btn-draw" id="btnDraw" ${!state.signal ? 'disabled' : ''}><i class="fas fa-handshake"></i> EMPATE</button>
-            </div>
-            <p style="font-size:0.75rem;color:var(--text-dim);text-align:center;margin-top:10px;font-family:'JetBrains Mono',monospace;">Solo el administrador puede registrar resultados</p>
-        </div>
-
-        <!-- Estadísticas -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-chart-pie"></i> Estadísticas globales</div>
-            <div class="stats-grid" id="adminStats">${statsHtml()}</div>
-        </div>
-
-        <!-- Historial -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-history"></i> Historial completo</div>
-            <div class="history-list" id="adminHistory">
-                ${state.history.length ? state.history.map(historyItemHtml).join('') : '<div class="history-empty">— Sin registros —</div>'}
-            </div>
-            <div class="btn-row">
-                <button class="btn-sm" id="btnExport"><i class="fas fa-file-excel"></i> Exportar Excel</button>
-                <button class="btn-sm danger" id="btnClear"><i class="fas fa-trash"></i> Limpiar historial</button>
-            </div>
-        </div>`;
-
-    // eventos
-    document.getElementById("btnBack").onclick = () => renderLanding();
-    document.getElementById("btnSend").onclick = () => {
-        const broker = document.getElementById("aBroker").value;
-        const asset = document.getElementById("aAsset").value.trim().toUpperCase();
-        const dir = document.getElementById("aDir").value;
-        const dur = parseInt(document.getElementById("aDur").value);
-        if(!asset) { toast('Ingresa un activo válido', 'error'); return; }
-        if(!CONFIG.ASSETS.includes(asset) && asset.length < 3) { toast('Activo demasiado corto', 'error'); return; }
-        showConfirmSignal(broker, asset, dir, dur);
-    };
-    document.getElementById("btnWin").onclick = async () => { await registrarResultado('win'); };
-    document.getElementById("btnLoss").onclick = async () => { await registrarResultado('loss'); };
-    document.getElementById("btnDraw").onclick = async () => { await registrarResultado('draw'); };
-    document.getElementById("btnExport").onclick = exportExcel;
-    document.getElementById("btnClear").onclick = limpiarHistorial;
-
-    if(state.signal) startAdminCountdown();
-}
-
-function statsHtml() {
-    return `
-        <div class="stat-card stat-win"><span class="stat-val">${state.stats.win}</span><span class="stat-label">Ganadas</span></div>
-        <div class="stat-card stat-loss"><span class="stat-val">${state.stats.loss}</span><span class="stat-label">Perdidas</span></div>
-        <div class="stat-card stat-draw"><span class="stat-val">${state.stats.draw}</span><span class="stat-label">Empates</span></div>
-        <div class="stat-card stat-rate"><span class="stat-val">${winRate()}%</span><span class="stat-label">Efectividad</span></div>`;
-}
-
-function refreshAdminStats() {
-    const el = document.getElementById("adminStats");
-    if(el) el.innerHTML = statsHtml();
-}
-function refreshAdminHistory() {
-    const el = document.getElementById("adminHistory");
-    if(el) el.innerHTML = state.history.length ? state.history.map(historyItemHtml).join('') : '<div class="history-empty">— Sin registros —</div>';
-}
-function updateAdminSignalPreview() {
-    const el = document.getElementById("adminPreview");
-    if(!el) return;
-    if(state.signal) {
-        el.className = 'admin-signal-preview active';
-        el.innerHTML = `<i class="fas fa-circle" style="color:var(--green);font-size:0.6rem;"></i> Señal activa: ${state.signal.asset} ${state.signal.direction} &nbsp;<span class="admin-countdown" id="adminCd">--</span>`;
-    } else {
-        el.className = 'admin-signal-preview expired';
-        el.innerHTML = '<i class="fas fa-minus"></i> Sin señal activa';
-    }
-    // habilitar/deshabilitar botones resultado
-    ['btnWin','btnLoss','btnDraw'].forEach(id => {
-        const b = document.getElementById(id);
-        if(b) b.disabled = !state.signal;
-    });
-}
-
-function startAdminCountdown() {
-    if(state.adminCountdownTimer) clearInterval(state.adminCountdownTimer);
-    const tick = () => {
-        if(!state.signal) { clearInterval(state.adminCountdownTimer); updateAdminSignalPreview(); return; }
-        const rem = Math.max(0, state.signal.tiempoLimite - Date.now());
-        const el = document.getElementById("adminCd");
-        if(el) {
-            const m = Math.floor(rem/60000);
-            const s = Math.floor((rem%60000)/1000);
-            el.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        }
-        if(rem === 0) {
-            clearInterval(state.adminCountdownTimer);
-            // señal expirada
-            state.signal = null;
-            saveLocal();
-            updateAdminSignalPreview();
-        }
-    };
-    tick();
-    state.adminCountdownTimer = setInterval(tick, 1000);
-}
-
-/* ── PANEL USUARIO ── */
-function renderUserPanel() {
-    stopPolling();
-    state.view = "user";
-    document.getElementById("root").innerHTML = `
-        <div class="top-bar">
-            <button class="back-btn" id="btnBack"><i class="fas fa-arrow-left"></i> Inicio</button>
-            <div class="page-title"><i class="fas fa-satellite-dish" style="color:var(--gold);"></i> Sala de Señales</div>
-        </div>
-
-        <!-- Señal en vivo -->
-        <div class="signal-room">
-            <div class="signal-room-title"><i class="fas fa-circle" style="font-size:0.5rem;"></i> EN VIVO</div>
-            <div id="userSignal"></div>
-            <div class="cronometro" id="userCd">--:--</div>
-        </div>
-
-        <!-- Estadísticas -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-trophy"></i> Estadísticas comunidad</div>
-            <div class="stats-grid" id="userStats">${statsHtml()}</div>
-        </div>
-
-        <!-- Últimas señales -->
-        <div class="card">
-            <div class="card-title"><i class="fas fa-list"></i> Últimas 15 señales</div>
-            <div class="history-list" id="userHistory">
-                ${state.history.length ? state.history.slice(0,15).map(historyItemHtml).join('') : '<div class="history-empty">— Sin operaciones registradas —</div>'}
-            </div>
-        </div>`;
-
-    document.getElementById("btnBack").onclick = () => {
-        stopPolling();
-        if(state.countdownTimer) clearInterval(state.countdownTimer);
-        renderLanding();
-    };
-
-    renderSignalForUser();
-    startUserCountdown();
-    startPolling();
-    verificarNovedades(); // chequeo inmediato
-}
-
-function renderSignalForUser() {
-    const container = document.getElementById("userSignal");
-    if(!container) return;
-    if(!state.signal || state.signal.tiempoLimite <= Date.now()) {
-        container.innerHTML = `
-            <div class="waiting-msg">
-                <span class="w-icon"><i class="fas fa-satellite-dish"></i></span>
-                <p>Esperando señal del administrador…</p>
-                <small>Las señales llegan automáticamente</small>
-            </div>`;
-        return;
-    }
-    const dirClass = state.signal.direction === 'CALL' ? 'call' : 'put';
-    const dirLabel = state.signal.direction === 'CALL' ? '↑ CALL (SUBE)' : '↓ PUT (BAJA)';
-    container.innerHTML = `
-        <div class="signal-card">
-            <div class="signal-card-header">⚡ SEÑAL ACTIVA · ${state.signal.broker}</div>
-            <div class="signal-asset">${state.signal.asset}</div>
-            <div class="signal-dir ${dirClass}">
-                <i class="fas fa-arrow-${state.signal.direction==='CALL'?'up':'down'}"></i> ${dirLabel}
-            </div>
-            <div class="signal-meta">Enviada: ${new Date(state.signal.timestampEnvio).toLocaleTimeString('es', {hour:'2-digit',minute:'2-digit',second:'2-digit'})}</div>
-        </div>`;
-}
-
-function startUserCountdown() {
-    if(state.countdownTimer) clearInterval(state.countdownTimer);
-    const tick = () => {
-        const cdEl = document.getElementById("userCd");
-        if(!cdEl) { clearInterval(state.countdownTimer); return; }
-
-        if(!state.signal || state.signal.tiempoLimite <= Date.now()) {
-            if(state.signal && state.signal.tiempoLimite <= Date.now()) {
-                // recién expiró
-                state.signal = null;
-                saveLocal();
-                renderSignalForUser();
-            }
-            cdEl.textContent = '--:--';
-            cdEl.className = 'cronometro';
-            return;
-        }
-
-        const rem = Math.max(0, state.signal.tiempoLimite - Date.now());
-        const m = Math.floor(rem/60000);
-        const s = Math.floor((rem%60000)/1000);
-        cdEl.textContent = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
-        cdEl.className = `cronometro${rem < 10000 ? ' urgent' : ''}`;
-    };
-    tick();
-    state.countdownTimer = setInterval(tick, 1000);
-}
-
-function refreshUserStats() {
-    const el = document.getElementById("userStats");
-    if(el) el.innerHTML = statsHtml();
-    const elH = document.getElementById("userHistory");
-    if(elH) elH.innerHTML = state.history.length ? state.history.slice(0,15).map(historyItemHtml).join('') : '<div class="history-empty">— Sin operaciones registradas —</div>';
-}
-
-// ═══════════════════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════════════════
-loadLocal();
-renderLanding();
-
-// Desbloqueo automático si el timer ya pasó
-if(state.lockedUntil > 0 && Date.now() >= state.lockedUntil) {
-    state.pinAttempts = 0;
-    state.lockedUntil = 0;
-    saveLocal();
-}
-
-// Habilitar AudioContext en primer toque
-document.body.addEventListener('click', () => {
-    if(state.audioCtx && state.audioCtx.state === 'suspended') state.audioCtx.resume();
-}, { once: false });
+document.addEventListener('keydown', e => {
+  if(e.key==='Enter') {
+    const tab = document.getElementById('tabAdmin').classList.contains('active');
+    if(tab) loginAdmin(); else loginUser();
+  }
+});
 </script>
 </body>
 </html>
