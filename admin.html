@@ -307,6 +307,15 @@ tbody td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03);
           </div>
         </div>
 
+        <div class="field">
+          <label>Hora exacta de entrada</label>
+          <input type="time" id="entryTime" step="60"
+            style="width:100%;padding:13px 16px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.07);border-radius:13px;color:white;font-size:15px;font-family:'DM Mono',monospace;outline:none;">
+          <div style="font-size:11px;color:var(--muted);margin-top:6px;font-family:'DM Mono',monospace;">
+            Deja vacío para señal inmediata (60s)
+          </div>
+        </div>
+
         <button class="btn-send" onclick="sendSignal()">
           📡 ENVIAR SEÑAL
         </button>
@@ -435,44 +444,58 @@ function getAsset(){
 
 // ── SEND SIGNAL ──────────────────────────────────────────
 function sendSignal(){
-  const broker = document.getElementById('broker').value;
-  const asset  = getAsset();
-  const now    = new Date();
-  currentSignal = { broker, asset, direction, timestamp: now.toISOString() };
+  const broker    = document.getElementById('broker').value;
+  const asset     = getAsset();
+  const entryTime = document.getElementById('entryTime').value; // "HH:MM" or ""
+  const now       = new Date();
+  const signalId  = Date.now().toString();
 
-  updateSignalBox(asset, direction, broker);
+  // Calculate countdown seconds until entry time
+  let countdownSecs = 60;
+  if(entryTime){
+    const [hh, mm] = entryTime.split(':').map(Number);
+    const target = new Date();
+    target.setHours(hh, mm, 0, 0);
+    if(target <= now) target.setDate(target.getDate() + 1); // next day
+    countdownSecs = Math.round((target - now) / 1000);
+    if(countdownSecs < 10) countdownSecs = 60; // safety
+  }
+
+  currentSignal = { broker, asset, direction, timestamp: now.toISOString(), entryTime, countdownSecs };
+
+  updateSignalBox(asset, direction, broker, entryTime);
   playAlert();
-  startTimer();
-  showToast(`📡 Señal enviada: ${asset} ${direction}`, 'gold');
+  startTimer(countdownSecs);
+  showToast(`📡 Señal enviada: ${asset} ${direction}${entryTime?' → '+entryTime:''}`, 'gold');
 
-  // LocalStorage bridge for same-device demo (sala.html reads this)
-  localStorage.setItem('ali_live_signal', JSON.stringify({
-    id: Date.now().toString(), asset, direction,
-    broker: document.getElementById('broker').value,
-    timestamp: currentSignal.timestamp
-  }));
+  const payload = {
+    id: signalId, asset, direction, broker,
+    timestamp: now.toISOString(),
+    entryTime: entryTime || null,
+    countdownSecs,
+    result: null
+  };
+
+  localStorage.setItem('ali_live_signal', JSON.stringify(payload));
   localStorage.removeItem('ali_live_result');
 
-  // Write signal to Firebase
   fetch(FB_URL + '/signal.json', {
     method: 'PUT',
-    body: JSON.stringify({
-      id: Date.now().toString(),
-      asset, direction,
-      broker: document.getElementById('broker').value,
-      timestamp: new Date().toISOString(),
-      result: null
-    })
+    body: JSON.stringify(payload)
   }).catch(()=>{});
 }
 
-function updateSignalBox(asset, dir, broker){
+function updateSignalBox(asset, dir, broker, entryTime){
   const box = document.getElementById('currentSignalBox');
+  const entryLabel = entryTime
+    ? `<div style="font-size:11px;color:var(--gold);font-family:'DM Mono',monospace;margin-top:4px;letter-spacing:1px;">ENTRADA: ${entryTime}</div>`
+    : '';
   box.innerHTML = `
     <div class="signal-info">
       <div>
         <div class="signal-pair">${asset}</div>
         <div class="signal-meta">${broker} · M1</div>
+        ${entryLabel}
       </div>
       <div class="signal-dir ${dir.toLowerCase()}">${dir==='CALL'?'▲ CALL':'▼ PUT'}</div>
     </div>
@@ -483,9 +506,9 @@ function updateSignalBox(asset, dir, broker){
 }
 
 // ── TIMER ────────────────────────────────────────────────
-function startTimer(){
+function startTimer(secs){
   clearInterval(timerInterval);
-  timerSecs = 60;
+  timerSecs = secs || 60;
   renderTimer();
   timerInterval = setInterval(()=>{
     timerSecs--;
