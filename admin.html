@@ -1,609 +1,95 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ali Binary Options — Panel Admin</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --gold:#f59e0b; --gold2:#fbbf24; --orange:#f97316;
-  --green:#10b981; --red:#ef4444; --yellow:#facc15;
-  --bg:#040911; --surface:rgba(15,22,40,0.9); --surface2:rgba(8,14,30,0.95);
-  --border:rgba(245,158,11,0.12); --border2:rgba(255,255,255,0.06);
-  --text:#e2e8f0; --muted:#64748b; --muted2:#94a3b8;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Syne',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-.bg-grid{position:fixed;inset:0;
-  background-image:linear-gradient(rgba(245,158,11,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(245,158,11,0.03) 1px,transparent 1px);
-  background-size:40px 40px;z-index:0;pointer-events:none;}
-.bg-glow{position:fixed;inset:0;
-  background:radial-gradient(ellipse 60% 50% at 0% 0%,rgba(245,158,11,0.06),transparent),
-             radial-gradient(ellipse 50% 40% at 100% 100%,rgba(16,185,129,0.05),transparent);
-  z-index:0;pointer-events:none;}
+const SHEET_NAME = 'Signals';
 
-/* HEADER */
-.header{
-  position:sticky;top:0;z-index:100;
-  display:flex;justify-content:space-between;align-items:center;
-  padding:14px 28px;
-  background:rgba(4,9,17,0.92);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:blur(18px);
-}
-.logo{display:flex;align-items:center;gap:11px;font-size:20px;font-weight:800;}
-.logo-icon{width:42px;height:42px;border-radius:12px;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  display:flex;align-items:center;justify-content:center;font-size:20px;
-  box-shadow:0 0 20px rgba(245,158,11,0.3);}
-.header-right{display:flex;align-items:center;gap:12px;}
-.badge{display:flex;align-items:center;gap:7px;
-  padding:8px 14px;border-radius:999px;
-  background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);
-  font-size:11px;color:var(--green);font-family:'DM Mono',monospace;letter-spacing:1px;}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--green);
-  box-shadow:0 0 8px var(--green);animation:pulse 1.2s infinite;}
-@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.6);}}
-.role-badge{padding:6px 14px;border-radius:999px;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:#000;font-size:11px;font-weight:800;letter-spacing:1px;}
-.btn-logout{padding:8px 16px;border-radius:999px;border:1px solid var(--border2);
-  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
-  font-family:'DM Mono',monospace;transition:all 0.2s;}
-.btn-logout:hover{border-color:var(--red);color:var(--red);}
-
-/* LAYOUT */
-.container{max-width:1400px;margin:0 auto;padding:28px 24px;position:relative;z-index:1;}
-.layout{display:grid;grid-template-columns:380px 1fr;gap:24px;align-items:start;}
-
-/* CARDS */
-.card{
-  background:var(--surface);border:1px solid var(--border2);
-  border-radius:24px;padding:26px;
-  backdrop-filter:blur(16px);
-  box-shadow:0 20px 50px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.04);
-}
-.card-title{
-  font-size:13px;font-weight:700;letter-spacing:2px;color:var(--muted);
-  text-transform:uppercase;font-family:'DM Mono',monospace;
-  margin-bottom:22px;display:flex;align-items:center;gap:8px;
-}
-.card-title::before{content:'';display:inline-block;width:3px;height:14px;
-  background:linear-gradient(var(--gold),var(--orange));border-radius:2px;}
-
-/* FORM */
-.field{margin-bottom:16px;}
-.field label{display:block;font-size:11px;font-weight:700;letter-spacing:1.5px;
-  color:var(--muted);margin-bottom:7px;font-family:'DM Mono',monospace;text-transform:uppercase;}
-.field select,.field input{
-  width:100%;padding:13px 16px;
-  background:rgba(0,0,0,0.5);border:1px solid var(--border2);
-  border-radius:13px;color:var(--text);font-size:14px;
-  font-family:'DM Mono',monospace;outline:none;transition:border 0.2s;
-  appearance:none;cursor:pointer;
-}
-.field select:focus,.field input:focus{border-color:rgba(245,158,11,0.4);}
-.field select option{background:#0f172a;color:var(--text);}
-.select-wrap{position:relative;}
-.select-wrap::after{content:'▾';position:absolute;right:14px;top:50%;transform:translateY(-50%);
-  color:var(--muted);pointer-events:none;font-size:14px;}
-
-/* DIRECTION TOGGLE */
-.dir-toggle{display:flex;gap:6px;}
-.dir-btn{flex:1;padding:13px;border-radius:13px;border:1px solid var(--border2);
-  background:rgba(0,0,0,0.4);color:var(--muted);font-family:'Syne',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:0.5px;}
-.dir-btn.call-active{background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.5);color:var(--green);}
-.dir-btn.put-active{background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.5);color:var(--red);}
-
-/* SEND BUTTON */
-.btn-send{
-  width:100%;padding:16px;border:none;border-radius:16px;
-  font-family:'Syne',sans-serif;font-size:16px;font-weight:800;
-  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:#000;margin-top:6px;
-  box-shadow:0 8px 30px rgba(245,158,11,0.3);
-  position:relative;overflow:hidden;
-}
-.btn-send::before{content:'';position:absolute;inset:0;
-  background:linear-gradient(135deg,transparent,rgba(255,255,255,0.15));
-  opacity:0;transition:opacity 0.2s;}
-.btn-send:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(245,158,11,0.45);}
-.btn-send:hover::before{opacity:1;}
-.btn-send:active{transform:translateY(0);}
-
-/* RESULT BUTTONS */
-.result-btns{display:flex;flex-direction:column;gap:10px;margin-top:12px;}
-.btn-result{
-  width:100%;padding:14px;border:none;border-radius:14px;
-  font-family:'Syne',sans-serif;font-size:14px;font-weight:800;
-  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
-}
-.btn-result:hover{transform:translateY(-2px);}
-.btn-win{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:var(--green);}
-.btn-win:hover{background:rgba(16,185,129,0.25);}
-.btn-loss{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);color:var(--red);}
-.btn-loss:hover{background:rgba(239,68,68,0.25);}
-.btn-draw{background:rgba(250,204,21,0.1);border:1px solid rgba(250,204,21,0.3);color:var(--yellow);}
-.btn-draw:hover{background:rgba(250,204,21,0.2);}
-
-.divider{height:1px;background:var(--border2);margin:22px 0;}
-
-/* STATS GRID */
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
-.stat{
-  background:var(--surface2);border:1px solid var(--border2);
-  border-radius:18px;padding:18px 16px;text-align:center;
-  transition:border 0.2s;
-}
-.stat:hover{border-color:rgba(245,158,11,0.2);}
-.stat-label{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--muted);
-  font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:10px;}
-.stat-val{font-size:38px;font-weight:800;line-height:1;}
-.s-green{color:var(--green);}
-.s-red{color:var(--red);}
-.s-yellow{color:var(--yellow);}
-.s-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
-
-/* CURRENT SIGNAL */
-.signal-current{
-  background:linear-gradient(145deg,rgba(245,158,11,0.06),rgba(249,115,22,0.04));
-  border:1px solid rgba(245,158,11,0.2);border-radius:20px;
-  padding:22px;margin-bottom:22px;display:flex;align-items:center;
-  justify-content:space-between;gap:16px;
-}
-.signal-info{display:flex;align-items:center;gap:16px;}
-.signal-pair{font-size:26px;font-weight:800;}
-.signal-dir{font-size:18px;font-weight:700;}
-.signal-dir.call{color:var(--green);}
-.signal-dir.put{color:var(--red);}
-.signal-meta{font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;margin-top:3px;}
-.no-signal{color:var(--muted);font-family:'DM Mono',monospace;font-size:13px;}
-
-/* HISTORY TABLE */
-.history-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
-.clear-btn{padding:6px 14px;border-radius:999px;border:1px solid var(--border2);
-  background:transparent;color:var(--muted);cursor:pointer;font-size:11px;
-  font-family:'DM Mono',monospace;transition:all 0.2s;}
-.clear-btn:hover{border-color:var(--red);color:var(--red);}
-.table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
-thead th{
-  text-align:left;padding:10px 14px;
-  font-size:10px;font-weight:700;letter-spacing:1.5px;
-  color:var(--muted);font-family:'DM Mono',monospace;text-transform:uppercase;
-  border-bottom:1px solid var(--border2);
-}
-tbody tr{transition:background 0.15s;}
-tbody tr:hover{background:rgba(255,255,255,0.02);}
-tbody td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.03);
-  font-family:'DM Mono',monospace;font-size:12px;}
-.td-asset{font-weight:700;font-family:'Syne',sans-serif;font-size:13px;}
-.td-dir.call{color:var(--green);}
-.td-dir.put{color:var(--red);}
-.result-chip{
-  display:inline-flex;align-items:center;gap:5px;
-  padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;
-}
-.chip-win{background:rgba(16,185,129,0.15);color:var(--green);border:1px solid rgba(16,185,129,0.3);}
-.chip-loss{background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);}
-.chip-draw{background:rgba(250,204,21,0.1);color:var(--yellow);border:1px solid rgba(250,204,21,0.25);}
-.td-broker{color:var(--muted2);}
-.empty-row td{text-align:center;color:var(--muted);padding:30px;font-family:'DM Mono',monospace;}
-
-/* TOAST */
-.toast{
-  position:fixed;bottom:24px;right:24px;z-index:999;
-  padding:14px 22px;border-radius:16px;font-size:14px;font-weight:700;
-  font-family:'Syne',sans-serif;
-  box-shadow:0 10px 30px rgba(0,0,0,0.5);
-  transform:translateY(80px);opacity:0;
-  transition:all 0.3s cubic-bezier(.34,1.56,.64,1);
-}
-.toast.show{transform:translateY(0);opacity:1;}
-.toast.gold{background:linear-gradient(135deg,var(--gold),var(--orange));color:#000;}
-.toast.green{background:linear-gradient(135deg,var(--green),#059669);color:#fff;}
-.toast.red{background:rgba(239,68,68,0.9);color:#fff;}
-.toast.yellow{background:rgba(250,204,21,0.9);color:#000;}
-
-/* TIMER DISPLAY */
-.timer-display{
-  font-size:48px;font-weight:800;font-family:'DM Mono',monospace;
-  color:var(--green);text-align:center;margin:8px 0;
-  text-shadow:0 0 30px rgba(16,185,129,0.4);
-  transition:color 0.3s;
-}
-.timer-display.warning{color:var(--yellow);text-shadow:0 0 30px rgba(250,204,21,0.4);}
-.timer-display.urgent{color:var(--red);text-shadow:0 0 30px rgba(239,68,68,0.4);}
-
-/* SCROLLBAR */
-::-webkit-scrollbar{width:6px;height:6px;}
-::-webkit-scrollbar-track{background:transparent;}
-::-webkit-scrollbar-thumb{background:rgba(245,158,11,0.2);border-radius:3px;}
-
-@media(max-width:1100px){
-  .layout{grid-template-columns:1fr;}
-  .stats-grid{grid-template-columns:repeat(2,1fr);}
-}
-@media(max-width:600px){
-  .header{padding:12px 16px;}
-  .container{padding:16px 12px;}
-  .stats-grid{grid-template-columns:repeat(2,1fr);}
-}
-</style>
-</head>
-<body>
-<div class="bg-grid"></div>
-<div class="bg-glow"></div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="logo">
-    <div class="logo-icon">📈</div>
-    Ali Binary Options
-  </div>
-  <div class="header-right">
-    <div class="badge"><div class="dot"></div>EN VIVO</div>
-    <div class="role-badge">⚡ ADMIN</div>
-    <button class="btn-logout" onclick="logout()">Salir</button>
-  </div>
-</div>
-
-<div class="container">
-  <div class="layout">
-
-    <!-- LEFT: ADMIN CONTROLS -->
-    <div>
-      <div class="card">
-        <div class="card-title">Enviar Señal</div>
-
-        <div class="field">
-          <label>Broker</label>
-          <div class="select-wrap">
-            <select id="broker">
-              <option value="IQ Option">IQ Option</option>
-              <option value="Exnova">Exnova</option>
-              <option value="Ambos">Ambos Brokers</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="field">
-          <label>Activo / Par</label>
-          <div class="select-wrap">
-            <select id="assetSelect">
-              <option>EUR/USD</option>
-              <option>GBP/USD</option>
-              <option>USD/JPY</option>
-              <option>AUD/USD</option>
-              <option>EUR/GBP</option>
-              <option>USD/CAD</option>
-              <option>BTC/USD</option>
-              <option>ETH/USD</option>
-              <option>GOLD/USD</option>
-              <option>OTC EUR/USD</option>
-              <option>OTC GBP/USD</option>
-              <option>custom</option>
-            </select>
-          </div>
-        </div>
-        <div class="field" id="customField" style="display:none;">
-          <label>Activo personalizado</label>
-          <input type="text" id="customAsset" placeholder="Ej: USD/CHF">
-        </div>
-
-        <div class="field">
-          <label>Dirección</label>
-          <div class="dir-toggle">
-            <button class="dir-btn call-active" id="btnCall" onclick="setDir('CALL')">▲ CALL</button>
-            <button class="dir-btn" id="btnPut" onclick="setDir('PUT')">▼ PUT</button>
-          </div>
-        </div>
-
-        <button class="btn-send" onclick="sendSignal()">
-          📡 ENVIAR SEÑAL
-        </button>
-
-        <div class="divider"></div>
-
-        <div class="card-title">Registrar Resultado</div>
-        <div class="result-btns">
-          <button class="btn-result btn-win" onclick="setResult('WIN')">✅ WIN — Operación Ganada</button>
-          <button class="btn-result btn-loss" onclick="setResult('LOSS')">❌ LOSS — Operación Perdida</button>
-          <button class="btn-result btn-draw" onclick="setResult('DRAW')">⚪ DRAW — Empate / Expirada</button>
-        </div>
-
-        <div class="divider"></div>
-
-        <!-- Timer -->
-        <div style="text-align:center;">
-          <div class="card-title" style="justify-content:center;">Cronómetro de señal</div>
-          <div class="timer-display" id="timerDisplay">00:60</div>
-          <div id="timerStatus" style="font-size:12px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;margin-top:4px;">Sin señal activa</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: STATS + HISTORY -->
-    <div>
-      <!-- Current signal -->
-      <div class="signal-current" id="currentSignalBox">
-        <div class="no-signal">Ninguna señal activa actualmente</div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-grid">
-        <div class="stat">
-          <div class="stat-label">WINS</div>
-          <div class="stat-val s-green" id="stat-wins">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">LOSSES</div>
-          <div class="stat-val s-red" id="stat-losses">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">DRAWS</div>
-          <div class="stat-val s-yellow" id="stat-draws">0</div>
-        </div>
-        <div class="stat">
-          <div class="stat-label">ACCURACY</div>
-          <div class="stat-val s-gold" id="stat-acc">—</div>
-        </div>
-      </div>
-
-      <!-- History -->
-      <div class="card">
-        <div class="history-header">
-          <div class="card-title" style="margin-bottom:0;">Historial de Operaciones</div>
-          <button class="clear-btn" onclick="clearHistory()">🗑 Limpiar</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Activo</th>
-                <th>Dirección</th>
-                <th>Resultado</th>
-                <th>Broker</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-              </tr>
-            </thead>
-            <tbody id="historyBody">
-              <tr class="empty-row"><td colspan="6">Sin operaciones registradas</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<audio id="alertAudio" preload="auto">
-  <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-</audio>
-
-<script>
-// ── CONFIG ──────────────────────────────────────────────
-const WRITE_URL = 'https://script.google.com/macros/s/AKfycbwH0DHyqcecGB6GD5Or8TK4poSw3E2CcFKMscDvLPl2ih_PGkLuZHJfiEmphv8Jm8UH/exec';
-
-// ── AUTH CHECK ──────────────────────────────────────────
-if(sessionStorage.getItem('ali_role') !== 'admin') {
-  window.location.href = 'index.html';
-}
-
-// ── STATE ───────────────────────────────────────────────
-let direction = 'CALL';
-let history = JSON.parse(localStorage.getItem('ali_history') || '[]');
-let wins   = parseInt(localStorage.getItem('ali_wins')   || '0');
-let losses = parseInt(localStorage.getItem('ali_losses') || '0');
-let draws  = parseInt(localStorage.getItem('ali_draws')  || '0');
-let currentSignal = null;
-let timerInterval = null;
-let timerSecs = 60;
-
-// ── INIT ─────────────────────────────────────────────────
-renderStats();
-renderHistory();
-
-// ── DIRECTION ────────────────────────────────────────────
-function setDir(d) {
-  direction = d;
-  document.getElementById('btnCall').className = 'dir-btn' + (d==='CALL'?' call-active':'');
-  document.getElementById('btnPut').className  = 'dir-btn' + (d==='PUT'?' put-active':'');
-}
-
-// ── ASSET ────────────────────────────────────────────────
-document.getElementById('assetSelect').addEventListener('change', function(){
-  document.getElementById('customField').style.display =
-    this.value==='custom' ? 'block' : 'none';
-});
-
-function getAsset(){
-  const sel = document.getElementById('assetSelect').value;
-  if(sel==='custom') return document.getElementById('customAsset').value.trim() || 'EUR/USD';
-  return sel;
-}
-
-// ── SEND SIGNAL ──────────────────────────────────────────
-function sendSignal(){
-  const broker = document.getElementById('broker').value;
-  const asset  = getAsset();
-  const now    = new Date();
-  currentSignal = { broker, asset, direction, timestamp: now.toISOString() };
-
-  updateSignalBox(asset, direction, broker);
-  playAlert();
-  startTimer();
-  showToast(`📡 Señal enviada: ${asset} ${direction}`, 'gold');
-
-  // LocalStorage bridge for same-device demo (sala.html reads this)
-  localStorage.setItem('ali_live_signal', JSON.stringify({
-    id: Date.now().toString(), asset, direction,
-    broker: document.getElementById('broker').value,
-    timestamp: currentSignal.timestamp
-  }));
-  localStorage.removeItem('ali_live_result');
-
-  const payload = { ...currentSignal, type:'signal' };
-  fetch(WRITE_URL, { method:'POST', body: JSON.stringify(payload) })
-    .catch(()=>{});
-}
-
-function updateSignalBox(asset, dir, broker){
-  const box = document.getElementById('currentSignalBox');
-  box.innerHTML = `
-    <div class="signal-info">
-      <div>
-        <div class="signal-pair">${asset}</div>
-        <div class="signal-meta">${broker} · M1</div>
-      </div>
-      <div class="signal-dir ${dir.toLowerCase()}">${dir==='CALL'?'▲ CALL':'▼ PUT'}</div>
-    </div>
-    <div style="text-align:right;">
-      <div style="font-size:10px;color:var(--muted);font-family:'DM Mono',monospace;letter-spacing:1px;">ENVIADA</div>
-      <div style="font-size:13px;font-family:'DM Mono',monospace;margin-top:3px;">${fmtTime(new Date())}</div>
-    </div>`;
-}
-
-// ── TIMER ────────────────────────────────────────────────
-function startTimer(){
-  clearInterval(timerInterval);
-  timerSecs = 60;
-  renderTimer();
-  timerInterval = setInterval(()=>{
-    timerSecs--;
-    renderTimer();
-    if(timerSecs <= 0){ clearInterval(timerInterval); setTimerStatus('Esperando resultado'); }
-  }, 1000);
-}
-
-function renderTimer(){
-  const el = document.getElementById('timerDisplay');
-  const st = document.getElementById('timerStatus');
-  const s  = Math.max(0, timerSecs);
-  el.textContent = `00:${String(s).padStart(2,'0')}`;
-  el.className = 'timer-display';
-  if(s <= 5)  { el.classList.add('urgent');  setTimerStatus('⚡ OPERAR AHORA'); }
-  else if(s <= 15){ el.classList.add('warning'); setTimerStatus('⚠ Prepararse para operar'); }
-  else { setTimerStatus('Señal activa — cronómetro corriendo'); }
-}
-
-function setTimerStatus(txt){ document.getElementById('timerStatus').textContent = txt; }
-
-// ── RESULT ───────────────────────────────────────────────
-function setResult(res){
-  if(!currentSignal){ showToast('Envía una señal primero', 'red'); return; }
-  if(res==='WIN')  wins++;
-  if(res==='LOSS') losses++;
-  if(res==='DRAW') draws++;
-  localStorage.setItem('ali_wins',   wins);
-  localStorage.setItem('ali_losses', losses);
-  localStorage.setItem('ali_draws',  draws);
-
-  const entry = {
-    asset: currentSignal.asset,
-    direction: currentSignal.direction,
-    result: res,
-    broker: currentSignal.broker,
-    date: fmtDate(new Date()),
-    time: fmtTime(new Date())
-  };
-  history.unshift(entry);
-  localStorage.setItem('ali_history', JSON.stringify(history));
-
-  renderStats();
-  renderHistory();
-
-  const icons = {WIN:'✅',LOSS:'❌',DRAW:'⚪'};
-  const types = {WIN:'green',LOSS:'red',DRAW:'yellow'};
-  showToast(`${icons[res]} Resultado ${res} registrado`, types[res]);
-
-  // LocalStorage bridge for same-device demo
-  localStorage.setItem('ali_live_result', JSON.stringify({
-    id: Date.now().toString(), result: res,
-    asset: currentSignal.asset, direction: currentSignal.direction
-  }));
-
-  // Push result to Google Sheets
-  const payload = { ...currentSignal, result:res, type:'result', ...entry };
-  fetch(WRITE_URL, { method:'POST', body: JSON.stringify(payload) }).catch(()=>{});
-}
-
-// ── RENDER ───────────────────────────────────────────────
-function renderStats(){
-  document.getElementById('stat-wins').textContent   = wins;
-  document.getElementById('stat-losses').textContent = losses;
-  document.getElementById('stat-draws').textContent  = draws;
-  const total = wins + losses;
-  const acc   = total > 0 ? Math.round((wins/total)*100) + '%' : '—';
-  document.getElementById('stat-acc').textContent = acc;
-}
-
-function renderHistory(){
-  const tbody = document.getElementById('historyBody');
-  if(history.length === 0){
-    tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Sin operaciones registradas</td></tr>';
-    return;
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const sheet = getSheet();
+    
+    if (data.type === 'signal') {
+      // Guardar señal - borrar señal activa anterior primero
+      clearActiveSignal(sheet);
+      sheet.appendRow([
+        new Date().toISOString(),
+        data.asset,
+        data.direction,
+        data.broker,
+        'SIGNAL',
+        '',
+        Date.now().toString()
+      ]);
+    }
+    
+    if (data.type === 'result') {
+      // Buscar la última señal activa y agregarle el resultado
+      const lastRow = findLastSignalRow(sheet);
+      if (lastRow > 0) {
+        sheet.getRange(lastRow, 6).setValue(data.result);
+        sheet.getRange(lastRow, 5).setValue('RESULT');
+      }
+    }
+    
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: true }))
+      .setMimeType(ContentService.MimeType.JSON);
+      
+  } catch(err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  tbody.innerHTML = history.map(e => {
-    const chipClass = {WIN:'chip-win',LOSS:'chip-loss',DRAW:'chip-draw'}[e.result]||'chip-draw';
-    const icons     = {WIN:'✅',LOSS:'❌',DRAW:'⚪'};
-    const dirCls    = e.direction.toLowerCase();
-    return `<tr>
-      <td class="td-asset">${e.asset}</td>
-      <td class="td-dir ${dirCls}">${e.direction}</td>
-      <td><span class="result-chip ${chipClass}">${icons[e.result]} ${e.result}</span></td>
-      <td class="td-broker">${e.broker||'—'}</td>
-      <td>${e.date||'—'}</td>
-      <td>${e.time||'—'}</td>
-    </tr>`;
-  }).join('');
 }
 
-function clearHistory(){
-  if(!confirm('¿Borrar todo el historial?')) return;
-  history = [];
-  wins = losses = draws = 0;
-  localStorage.removeItem('ali_history');
-  localStorage.removeItem('ali_wins');
-  localStorage.removeItem('ali_losses');
-  localStorage.removeItem('ali_draws');
-  renderStats();
-  renderHistory();
-  showToast('Historial limpiado', 'gold');
+function doGet(e) {
+  try {
+    const sheet = getSheet();
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow < 2) {
+      return jsonResponse({ signal: null });
+    }
+    
+    // Leer última fila
+    const row = sheet.getRange(lastRow, 1, 1, 7).getValues()[0];
+    const response = {
+      signalId: row[6] ? row[6].toString() : lastRow.toString(),
+      timestamp: row[0],
+      asset: row[1],
+      direction: row[2],
+      broker: row[3],
+      status: row[4],
+      result: row[5] || null,
+      resultId: row[5] ? (row[6] + '_r') : null
+    };
+    
+    return jsonResponse(response);
+    
+  } catch(err) {
+    return jsonResponse({ signal: null, error: err.toString() });
+  }
 }
 
-// ── HELPERS ──────────────────────────────────────────────
-function fmtDate(d){ return d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'2-digit'}); }
-function fmtTime(d){ return d.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); }
-
-function playAlert(){
-  try{
-    const a = document.getElementById('alertAudio');
-    a.currentTime = 0; a.play().catch(()=>{});
-  }catch(e){}
-  if(navigator.vibrate) navigator.vibrate([200,100,200]);
+function getSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(SHEET_NAME);
+    sheet.appendRow(['Timestamp','Asset','Direction','Broker','Status','Result','ID']);
+  }
+  return sheet;
 }
 
-let toastTimer;
-function showToast(msg, type='gold'){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.classList.remove('show'); }, 3200);
+function clearActiveSignal(sheet) {
+  // No borramos, solo marcamos
 }
 
-function logout(){ sessionStorage.clear(); window.location.href='index.html'; }
-</script>
-</body>
-</html>
+function findLastSignalRow(sheet) {
+  const lastRow = sheet.getLastRow();
+  if (lastRow < 2) return 0;
+  return lastRow;
+}
+
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
