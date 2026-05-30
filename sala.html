@@ -436,8 +436,9 @@ if(ls){
   state.losses = ls.losses||0;
   state.draws = ls.draws||0;
   state.history = ls.history||[];
-  state.lastSignalId = ls.lastSignalId||null;
-  state.lastResultId = ls.lastResultId||null;
+  // Don't restore signal IDs — always show current signal on fresh load
+  state.lastSignalId = null;
+  state.lastResultId = null;
 }
 
 renderStats();
