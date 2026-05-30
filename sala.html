@@ -443,29 +443,23 @@ if(ls){
 renderStats();
 renderHistory();
 
-// ── POLLING ─────────────────────────────────────────────
+// ── POLLING via JSONP ────────────────────────────────────
 function poll(){
-  const cbName = 'aliCb_' + Date.now();
-  const script = document.createElement('script');
-  const timer = setTimeout(()=>{
-    delete window[cbName];
-    try{ document.body.removeChild(script); }catch(e){}
+  const cbName = 'cb' + Date.now();
+  const s = document.createElement('script');
+  const t = setTimeout(()=>{
+    window[cbName]=()=>{};
     setConnState(false);
-  }, 6000);
+  }, 7000);
   window[cbName] = function(data){
-    clearTimeout(timer);
+    clearTimeout(t);
     delete window[cbName];
-    try{ document.body.removeChild(script); }catch(e){}
     handleData(data);
     setConnState(true);
   };
-  script.src = READ_URL + '?callback=' + cbName + '&t=' + Date.now();
-  script.onerror = function(){
-    clearTimeout(timer);
-    delete window[cbName];
-    setConnState(false);
-  };
-  document.body.appendChild(script);
+  s.src = READ_URL + '?callback=' + cbName + '&t=' + Date.now();
+  s.onerror = ()=>{ clearTimeout(t); setConnState(false); };
+  document.head.appendChild(s);
 }
 
 function handleData(data){
