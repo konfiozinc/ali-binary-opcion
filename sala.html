@@ -398,7 +398,7 @@ body{
 
 <script>
 // ── CONFIG ──────────────────────────────────────────────
-const READ_URL = 'https://script.google.com/macros/s/AKfycbxenlQkBrnlF0f8EOYTgpbusXtxNyQK5ggR_ghzC1DERZ3miEaKXtScT6KYCYAD_gtg/exec';
+const READ_URL = 'https://script.google.com/macros/s/AKfycbwsFKEbPXvfNWfMvVQvuLx0stIjYchz_uRNAtpu5BZJtGV-FiqBGbIEDzpXVcard6tt/exec';
 const POLL_INTERVAL = 4000; // ms
 
 // ── PARTICLES ───────────────────────────────────────────
@@ -444,15 +444,28 @@ renderStats();
 renderHistory();
 
 // ── POLLING ─────────────────────────────────────────────
-async function poll(){
-  try{
-    const res = await fetch(READ_URL + '?t=' + Date.now(), { signal: AbortSignal.timeout(5000) });
-    const data = await res.json();
+function poll(){
+  const cbName = 'aliCb_' + Date.now();
+  const script = document.createElement('script');
+  const timer = setTimeout(()=>{
+    delete window[cbName];
+    try{ document.body.removeChild(script); }catch(e){}
+    setConnState(false);
+  }, 6000);
+  window[cbName] = function(data){
+    clearTimeout(timer);
+    delete window[cbName];
+    try{ document.body.removeChild(script); }catch(e){}
     handleData(data);
     setConnState(true);
-  } catch(e){
+  };
+  script.src = READ_URL + '?callback=' + cbName + '&t=' + Date.now();
+  script.onerror = function(){
+    clearTimeout(timer);
+    delete window[cbName];
     setConnState(false);
-  }
+  };
+  document.body.appendChild(script);
 }
 
 function handleData(data){
