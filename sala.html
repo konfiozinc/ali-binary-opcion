@@ -264,6 +264,27 @@ body{
 }
 .conn-state.ok{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.3);color:var(--green);display:flex;align-items:center;gap:6px;}
 
+/* SOUND BTN */
+.sound-overlay{
+  position:fixed;inset:0;z-index:999;
+  background:rgba(4,9,17,0.92);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;backdrop-filter:blur(10px);
+}
+.sound-overlay.hidden{display:none;}
+.sound-title{font-size:22px;font-weight:800;text-align:center;line-height:1.3;}
+.sound-sub{font-size:13px;color:var(--muted);font-family:'DM Mono',monospace;text-align:center;}
+.btn-sound{
+  padding:18px 40px;border:none;border-radius:20px;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:#000;font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  cursor:pointer;transition:all 0.3s;letter-spacing:0.5px;
+  box-shadow:0 8px 30px rgba(245,158,11,0.4);
+  animation:iconPulse 2s ease-in-out infinite;
+}
+@keyframes iconPulse{0%,100%{box-shadow:0 8px 30px rgba(245,158,11,0.3);}50%{box-shadow:0 8px 50px rgba(245,158,11,0.6);}}
+.btn-sound:hover{transform:translateY(-3px);}
+
 /* FOOTER */
 .footer{text-align:center;padding:30px 20px;color:var(--muted);font-size:11px;
   font-family:'DM Mono',monospace;position:relative;z-index:1;}
@@ -287,6 +308,14 @@ body{
 </style>
 </head>
 <body>
+<!-- SOUND OVERLAY -->
+<div class="sound-overlay" id="soundOverlay">
+  <div class="brand-icon" style="width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,#f59e0b,#f97316);display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:8px;">📈</div>
+  <div class="sound-title">Ali Binary Options<br>Sala Premium</div>
+  <div class="sound-sub">Toca para activar señales y sonido</div>
+  <button class="btn-sound" onclick="activateSound()">🔔 ACTIVAR SALA</button>
+</div>
+
 <div class="bg-grid"></div>
 <div class="bg-glow"></div>
 <div class="particles" id="particles"></div>
@@ -443,6 +472,19 @@ if(ls){
 
 renderStats();
 renderHistory();
+
+// ── SOUND ACTIVATION ────────────────────────────────────
+function activateSound(){
+  // Unlock audio context on user gesture
+  try{
+    const a = document.getElementById('alertAudio');
+    a.play().then(()=>{ a.pause(); a.currentTime=0; }).catch(()=>{});
+    const b = document.getElementById('resultAudio');
+    b.play().then(()=>{ b.pause(); b.currentTime=0; }).catch(()=>{});
+  }catch(e){}
+  if(navigator.vibrate) navigator.vibrate(100);
+  document.getElementById('soundOverlay').classList.add('hidden');
+}
 
 // ── POLLING via Firebase REST ─────────────────────────────
 async function poll(){
