@@ -1,12 +1,12 @@
 {
-  "name": "Ali Binary Options PRO",
-  "short_name": "Ali Binary",
-  "description": "Señales de trading binarias en tiempo real para IQ Option y Exnova",
+  "name": "Alí Binary Options Pro",
+  "short_name": "AlíBinary",
+  "description": "Señales de trading binario en tiempo real — Sala Premium",
   "start_url": "/index.html",
   "display": "standalone",
-  "background_color": "#040911",
-  "theme_color": "#f59e0b",
   "orientation": "portrait-primary",
+  "background_color": "#070c1a",
+  "theme_color": "#00d4ff",
   "icons": [
     {
       "src": "assets/icon-192.png",
@@ -22,6 +22,6 @@
     }
   ],
   "categories": ["finance", "utilities"],
-  "screenshots": [],
-  "lang": "es"
+  "lang": "es",
+  "dir": "ltr"
 }
