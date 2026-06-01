@@ -2,8 +2,6 @@
 // AUTH.JS — Autenticación Firebase
 // ============================================================
 
-const ADMIN_EMAIL = "damoatrader1015@gmail.com";
-
 // ─── LOGIN ───────────────────────────────────────────────────
 async function loginUser(email, password) {
   try {
