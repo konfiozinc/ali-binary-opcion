@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Panel — Alí Binary Options Pro</title>
+  <title>Admin — Alí Binary Options Pro</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0a0f1e" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,281 +11,149 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:      #070c1a;
-      --surface: #0d1426;
-      --surface2:#111827;
-      --border:  rgba(0,212,255,0.12);
-      --accent:  #00d4ff;
-      --accent2: #00ff88;
-      --call:    #00ff88;
-      --put:     #ff3366;
-      --text:    #e8f4f8;
-      --muted:   #7a9ab5;
-      --glass:   rgba(13,20,38,0.9);
-      --r:       12px;
+      --bg:#070c1a; --surface:#0d1426; --surface2:#111827;
+      --border:rgba(0,212,255,0.12); --accent:#00d4ff; --accent2:#00ff88;
+      --call:#00ff88; --put:#ff3366; --text:#e8f4f8; --muted:#7a9ab5;
+      --glass:rgba(13,20,38,0.9); --r:12px;
     }
-
-    html, body { height: 100%; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+    html,body { height:100%; }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; }
 
     /* NAV */
-    nav {
-      background: rgba(7,12,26,0.95);
-      border-bottom: 1px solid var(--border);
-      padding: 0 24px;
-      height: 60px;
-      display: flex; align-items: center; justify-content: space-between;
-      position: sticky; top: 0; z-index: 50;
-      backdrop-filter: blur(16px);
-    }
-    .nav-logo {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 14px; font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .nav-right { display: flex; align-items: center; gap: 16px; }
-    .nav-user { font-size: 13px; color: var(--muted); }
-    .nav-user span { color: var(--accent); font-weight: 600; }
-    .btn-logout {
-      padding: 7px 16px;
-      background: rgba(255,51,102,0.1);
-      border: 1px solid rgba(255,51,102,0.3);
-      border-radius: 8px;
-      color: var(--put);
-      font-size: 12px; font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .btn-logout:hover { background: rgba(255,51,102,0.2); }
+    nav { background:rgba(7,12,26,0.95); border-bottom:1px solid var(--border); padding:0 20px; height:58px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:50; backdrop-filter:blur(16px); }
+    .nav-logo { font-family:'Orbitron',sans-serif; font-size:13px; font-weight:900; letter-spacing:2px; background:linear-gradient(135deg,#00d4ff,#00ff88); -webkit-background-clip:text; -webkit-text-fill-color:transparent; display:flex; align-items:center; gap:10px; }
+    .nav-logo img { width:38px; height:38px; border-radius:50%; object-fit:cover; border:2px solid rgba(0,212,255,0.4); }
+    .nav-right { display:flex; align-items:center; gap:12px; }
+    .nav-user { font-size:12px; color:var(--muted); } .nav-user span { color:var(--accent); font-weight:600; }
+    .btn-logout { padding:6px 14px; background:rgba(255,51,102,0.1); border:1px solid rgba(255,51,102,0.3); border-radius:8px; color:var(--put); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
+    .btn-logout:hover { background:rgba(255,51,102,0.2); }
 
     /* TABS NAV */
-    .tabs-nav {
-      display: flex;
-      gap: 4px;
-      padding: 16px 24px 0;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-    }
-    .tab-btn {
-      padding: 10px 20px;
-      background: none; border: none;
-      color: var(--muted);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s;
-      white-space: nowrap;
-    }
-    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab-btn:hover:not(.active) { color: var(--text); }
+    .tabs-nav { display:flex; gap:2px; padding:14px 20px 0; background:var(--bg); border-bottom:1px solid var(--border); overflow-x:auto; }
+    .tab-btn { padding:9px 16px; background:none; border:none; color:var(--muted); font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s; white-space:nowrap; }
+    .tab-btn.active { color:var(--accent); border-bottom-color:var(--accent); }
+    .tab-btn:hover:not(.active) { color:var(--text); }
 
     /* MAIN */
-    main { flex: 1; overflow-y: auto; padding: 24px; }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; animation: fade-up 0.3s ease; }
+    main { flex:1; overflow-y:auto; padding:20px; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; animation:fade-up 0.3s ease; }
     @keyframes fade-up { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
 
     /* CARDS */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .card-title {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 13px; font-weight: 700;
-      letter-spacing: 1px;
-      color: var(--accent);
-      margin-bottom: 20px;
-      display: flex; align-items: center; gap: 8px;
-    }
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:22px; margin-bottom:18px; }
+    .card-title { font-family:'Orbitron',sans-serif; font-size:12px; font-weight:700; letter-spacing:1px; color:var(--accent); margin-bottom:18px; display:flex; align-items:center; gap:8px; }
 
-    /* FORM GRID */
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
-    .field label {
-      display: block; font-size: 11px; font-weight: 500;
-      color: var(--muted); text-transform: uppercase; letter-spacing: 1px;
-      margin-bottom: 7px;
-    }
-    .field input, .field select {
-      width: 100%;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 11px 14px;
-      color: var(--text);
-      font-family: 'Inter', sans-serif; font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .field input:focus, .field select:focus { border-color: var(--accent); }
-    .field select option { background: var(--surface); }
+    /* FORM */
+    .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:14px; }
+    .field label { display:block; font-size:11px; font-weight:500; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:7px; }
+    .field input, .field select { width:100%; background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:9px; padding:10px 13px; color:var(--text); font-family:'Inter',sans-serif; font-size:13px; outline:none; transition:border-color 0.2s; }
+    .field input:focus, .field select:focus { border-color:var(--accent); }
+    .field select option { background:var(--surface); }
+    datalist option { background:var(--surface); color:var(--text); }
 
-    .btn-primary {
-      padding: 12px 28px;
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      border: none; border-radius: 10px;
-      color: #070c1a;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 4px;
-    }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,212,255,0.35); }
-    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    /* BOTONES PRINCIPALES */
+    .btn-primary { padding:11px 24px; background:linear-gradient(135deg,#00d4ff,#00ff88); border:none; border-radius:10px; color:#070c1a; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:2px; cursor:pointer; transition:all 0.2s; }
+    .btn-primary:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,212,255,0.35); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+    /* BOTONES DE RESULTADO */
+    .btn-result { padding:6px 13px; border:none; border-radius:8px; cursor:pointer; font-size:12px; font-weight:800; letter-spacing:0.5px; transition:transform 0.15s; }
+    .btn-result:hover { transform:scale(1.1); }
+    .win-btn  { background:rgba(0,255,136,0.2); border:2px solid #00ff88; color:#00ff88; }
+    .loss-btn { background:rgba(255,51,102,0.2); border:2px solid #ff3366; color:#ff3366; }
+    .draw-btn { background:rgba(180,180,180,0.15); border:2px solid #aaa; color:#ccc; }
+
+    /* BOTONES PEQUEÑOS */
+    .btn-sm { padding:5px 10px; border:none; border-radius:7px; cursor:pointer; font-size:11px; font-weight:700; transition:all 0.15s; }
+    .btn-sm:hover { transform:scale(1.08); }
+    .promote-btn { background:rgba(0,212,255,0.15); border:1px solid rgba(0,212,255,0.5); color:var(--accent); }
+    .demote-btn  { background:rgba(255,200,0,0.15); border:1px solid rgba(255,200,0,0.4); color:#ffc800; }
+    .block-btn   { background:rgba(255,51,102,0.12); border:1px solid rgba(255,51,102,0.4); color:var(--put); }
+    .unblock-btn { background:rgba(0,255,136,0.12); border:1px solid rgba(0,255,136,0.4); color:var(--call); }
+    .del-btn     { background:rgba(255,51,102,0.08); border:1px solid rgba(255,51,102,0.25); color:var(--put); }
+
+    /* ICON BUTTONS */
+    .btn-icon { padding:6px 11px; border:1px solid rgba(255,255,255,0.15); border-radius:8px; cursor:pointer; font-size:15px; transition:transform 0.15s; background:rgba(255,255,255,0.06); }
+    .btn-icon:hover { transform:scale(1.15); }
 
     /* TABLE */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 10px; font-weight: 700; letter-spacing: 1px;
-      color: var(--muted); text-transform: uppercase;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-    }
-    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.15s; }
-    tbody tr:hover { background: rgba(0,212,255,0.04); }
-    tbody td { padding: 11px 12px; }
-    .empty-row { text-align: center; color: var(--muted); padding: 32px; font-size: 13px; }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { font-family:'Orbitron',sans-serif; font-size:10px; font-weight:700; letter-spacing:1px; color:var(--muted); text-transform:uppercase; padding:9px 10px; border-bottom:1px solid var(--border); text-align:left; }
+    tbody tr { border-bottom:1px solid rgba(255,255,255,0.04); transition:background 0.15s; }
+    tbody tr:hover { background:rgba(0,212,255,0.04); }
+    tbody td { padding:10px 10px; }
+    .empty-row { text-align:center; color:var(--muted); padding:28px; font-size:13px; }
+    .actions { display:flex; gap:5px; flex-wrap:wrap; }
 
     /* BADGES */
-    .badge {
-      display: inline-block; padding: 3px 10px;
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-      letter-spacing: 0.5px;
-    }
-    .call    { background: rgba(0,255,136,0.15); color: var(--call); border: 1px solid rgba(0,255,136,0.3); }
-    .put     { background: rgba(255,51,102,0.15); color: var(--put); border: 1px solid rgba(255,51,102,0.3); }
-    .pending { background: rgba(255,200,0,0.1);  color: #ffc800;    border: 1px solid rgba(255,200,0,0.3); }
-    .win-b   { background: rgba(0,255,136,0.15); color: var(--call); border: 1px solid rgba(0,255,136,0.3); }
-    .loss-b  { background: rgba(255,51,102,0.15);color: var(--put);  border: 1px solid rgba(255,51,102,0.3); }
-    .draw-b  { background: rgba(150,150,150,0.15);color: #aaa;       border: 1px solid rgba(150,150,150,0.3); }
-    .admin-b { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
-    .user-b  { background: rgba(100,120,180,0.15);color: #8090d0;    border: 1px solid rgba(100,120,180,0.3); }
-    .active-b{ background: rgba(0,255,136,0.15); color: var(--call); border: 1px solid rgba(0,255,136,0.3); }
-    .blocked-b{background: rgba(255,51,102,0.15);color: var(--put);  border: 1px solid rgba(255,51,102,0.3); }
-
-    /* ACTION BUTTONS */
-    .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-    .btn-icon {
-      padding: 7px 12px; border: none; border-radius: 8px;
-      cursor: pointer; font-size: 16px;
-      transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-    .btn-icon:hover { transform: scale(1.2); background: rgba(255,255,255,0.16); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-    .btn-icon.win  { background: rgba(0,255,136,0.15); border-color: rgba(0,255,136,0.4); }
-    .btn-icon.loss { background: rgba(255,51,102,0.15); border-color: rgba(255,51,102,0.4); }
-    .btn-icon.draw { background: rgba(150,150,150,0.15); border-color: rgba(150,150,150,0.4); }
-    .btn-icon.edit { background: rgba(0,212,255,0.15); border-color: rgba(0,212,255,0.4); }
-    .btn-icon.del  { background: rgba(255,51,102,0.1); border-color: rgba(255,51,102,0.3); }
+    .badge { display:inline-block; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:0.3px; }
+    .call     { background:rgba(0,255,136,0.15); color:var(--call); border:1px solid rgba(0,255,136,0.3); }
+    .put      { background:rgba(255,51,102,0.15); color:var(--put); border:1px solid rgba(255,51,102,0.3); }
+    .pending  { background:rgba(255,200,0,0.1); color:#ffc800; border:1px solid rgba(255,200,0,0.3); }
+    .win-b    { background:rgba(0,255,136,0.15); color:var(--call); border:1px solid rgba(0,255,136,0.3); }
+    .loss-b   { background:rgba(255,51,102,0.15); color:var(--put); border:1px solid rgba(255,51,102,0.3); }
+    .draw-b   { background:rgba(150,150,150,0.12); color:#aaa; border:1px solid rgba(150,150,150,0.3); }
+    .admin-b  { background:rgba(0,212,255,0.15); color:var(--accent); border:1px solid rgba(0,212,255,0.3); }
+    .user-b   { background:rgba(100,120,180,0.12); color:#8090d0; border:1px solid rgba(100,120,180,0.3); }
+    .active-b { background:rgba(0,255,136,0.12); color:var(--call); border:1px solid rgba(0,255,136,0.25); }
+    .blocked-b{ background:rgba(255,51,102,0.12); color:var(--put); border:1px solid rgba(255,51,102,0.25); }
 
     /* STATS GRID */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 20px;
-      text-align: center;
-    }
-    .stat-val {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 28px; font-weight: 900;
-      margin-bottom: 6px;
-    }
-    .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-    .stat-card.win-card  .stat-val { color: var(--call); }
-    .stat-card.loss-card .stat-val { color: var(--put); }
-    .stat-card.draw-card .stat-val { color: #aaa; }
-    .stat-card.pct-card  .stat-val {
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:14px; margin-bottom:20px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; text-align:center; }
+    .stat-val { font-family:'Orbitron',sans-serif; font-size:26px; font-weight:900; margin-bottom:5px; }
+    .stat-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+    .win-card  .stat-val { color:var(--call); }
+    .loss-card .stat-val { color:var(--put); }
+    .draw-card .stat-val { color:#aaa; }
+    .pct-card  .stat-val { background:linear-gradient(135deg,#00d4ff,#00ff88); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
 
-    .win-bar-wrap {
-      background: rgba(0,0,0,0.4);
-      border-radius: 99px; height: 10px; overflow: hidden;
-      margin-top: 16px;
-    }
-    .win-bar {
-      height: 100%;
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 1s cubic-bezier(0.16,1,0.3,1);
-    }
+    /* DASHBOARD */
+    .dash-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; }
+
+    /* WIN BAR */
+    .win-bar-wrap { background:rgba(0,0,0,0.4); border-radius:99px; height:10px; overflow:hidden; margin-top:14px; }
+    .win-bar { height:100%; background:linear-gradient(135deg,#00d4ff,#00ff88); border-radius:99px; width:0%; transition:width 1.2s cubic-bezier(0.16,1,0.3,1); }
+
+    /* DANGER ZONE */
+    .danger-zone { border-color:rgba(255,51,102,0.3); }
+    .btn-danger  { padding:10px 18px; background:rgba(255,51,102,0.15); border:2px solid rgba(255,51,102,0.5); border-radius:10px; color:var(--put); font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+    .btn-danger:hover { background:rgba(255,51,102,0.25); transform:translateY(-1px); }
+    .btn-warn    { padding:10px 18px; background:rgba(255,200,0,0.12); border:2px solid rgba(255,200,0,0.4); border-radius:10px; color:#ffc800; font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+    .btn-warn:hover { background:rgba(255,200,0,0.22); transform:translateY(-1px); }
+
+    /* BOT */
+    .bot-status-badge { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; background:rgba(255,51,102,0.12); color:var(--put); border:1px solid rgba(255,51,102,0.3); }
+    .bot-status-badge.connected { background:rgba(0,255,136,0.12); color:var(--call); border-color:rgba(0,255,136,0.3); }
+    .code-block { background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:10px; padding:16px; font-family:monospace; font-size:12px; color:#00ff88; overflow-x:auto; line-height:1.6; margin-top:10px; white-space:pre; }
 
     /* MODAL */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0; z-index: 200;
-      background: rgba(0,0,0,0.75); backdrop-filter: blur(8px);
-      align-items: center; justify-content: center;
-    }
-    .modal-overlay[style*="flex"] { display: flex; }
-    .modal-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 32px 28px;
-      width: 100%; max-width: 500px;
-      margin: 20px;
-      box-shadow: 0 0 50px rgba(0,212,255,0.15);
-      animation: fade-up 0.3s ease;
-    }
-    .modal-box h3 {
-      font-family: 'Orbitron', sans-serif; font-size: 14px;
-      color: var(--accent); margin-bottom: 20px;
-    }
-    .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
-    .btn-outline {
-      flex: 1; padding: 12px;
-      background: none; border: 1px solid var(--border);
-      border-radius: 10px; color: var(--muted);
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 700; letter-spacing: 1px;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .modal-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.75); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+    .modal-overlay[style*="flex"] { display:flex; }
+    .modal-box { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:30px 26px; width:100%; max-width:480px; margin:20px; box-shadow:0 0 50px rgba(0,212,255,0.15); animation:fade-up 0.3s ease; }
+    .modal-box h3 { font-family:'Orbitron',sans-serif; font-size:13px; color:var(--accent); margin-bottom:18px; }
+    .modal-actions { display:flex; gap:10px; margin-top:18px; }
+    .btn-outline { flex:1; padding:11px; background:none; border:1px solid var(--border); border-radius:10px; color:var(--muted); font-family:'Orbitron',sans-serif; font-size:11px; font-weight:700; letter-spacing:1px; cursor:pointer; transition:all 0.2s; }
+    .btn-outline:hover { border-color:var(--accent); color:var(--accent); }
 
     /* TOAST */
-    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 10px; }
-    .toast {
-      padding: 13px 18px; border-radius: 10px;
-      font-size: 13px; font-weight: 500;
-      min-width: 220px; max-width: 340px;
-      opacity: 0; transform: translateX(30px);
-      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
-      border: 1px solid transparent;
-    }
-    .toast.show { opacity: 1; transform: translateX(0); }
-    .toast-success { background: rgba(0,255,136,0.12); border-color: rgba(0,255,136,0.3); color: var(--call); }
-    .toast-error   { background: rgba(255,51,102,0.12); border-color: rgba(255,51,102,0.3); color: var(--put); }
-    .toast-info    { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); color: var(--accent); }
+    #toast-container { position:fixed; bottom:22px; right:22px; z-index:500; display:flex; flex-direction:column; gap:8px; }
+    .toast { padding:12px 16px; border-radius:10px; font-size:13px; font-weight:500; min-width:200px; opacity:0; transform:translateX(30px); transition:all 0.35s cubic-bezier(0.16,1,0.3,1); border:1px solid transparent; }
+    .toast.show { opacity:1; transform:translateX(0); }
+    .toast-success { background:rgba(0,255,136,0.12); border-color:rgba(0,255,136,0.3); color:var(--call); }
+    .toast-error   { background:rgba(255,51,102,0.12); border-color:rgba(255,51,102,0.3); color:var(--put); }
+    .toast-info    { background:rgba(0,212,255,0.12); border-color:rgba(0,212,255,0.3); color:var(--accent); }
 
-    @media (max-width: 640px) {
-      main { padding: 16px; }
-      .tabs-nav { padding: 12px 16px 0; overflow-x: auto; }
-      .form-grid { grid-template-columns: 1fr; }
-    }
+    @media (max-width:640px) { main{padding:14px;} .tabs-nav{padding:10px 14px 0;} .form-grid{grid-template-columns:1fr;} }
   </style>
 </head>
 <body>
 
-  <!-- NAV -->
   <nav>
-    <div class="nav-logo" style="display:flex;align-items:center;gap:10px">
-      <img src="assets/logo.png" alt="logo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,212,255,0.4)" onerror="this.style.display='none'" />
+    <div class="nav-logo">
+      <img src="assets/logo.png" alt="logo" onerror="this.style.display='none'" />
       ALÍ BINARY OPTIONS PRO
     </div>
     <div class="nav-right">
@@ -294,238 +162,290 @@
     </div>
   </nav>
 
-  <!-- TABS -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="signals" onclick="showTab('signals')">📡 SEÑALES</button>
-    <button class="tab-btn"        data-tab="users"   onclick="showTab('users')">👥 USUARIOS</button>
-    <button class="tab-btn"        data-tab="stats"   onclick="showTab('stats')">📊 ESTADÍSTICAS</button>
+    <button class="tab-btn active" data-tab="signals"   onclick="showTab('signals')">📡 SEÑALES</button>
+    <button class="tab-btn"        data-tab="users"     onclick="showTab('users')">👥 USUARIOS</button>
+    <button class="tab-btn"        data-tab="stats"     onclick="showTab('stats')">📊 ESTADÍSTICAS</button>
+    <button class="tab-btn"        data-tab="dashboard" onclick="showTab('dashboard')">🚀 DASHBOARD</button>
+    <button class="tab-btn"        data-tab="audit"     onclick="showTab('audit')">🔍 AUDITORÍA</button>
+    <button class="tab-btn"        data-tab="bot"       onclick="showTab('bot')">🤖 BOT IQ</button>
   </div>
 
   <main>
 
-    <!-- TAB SEÑALES -->
+    <!-- ─── TAB SEÑALES ─────────────────────────────────── -->
     <div id="tab-signals" class="tab-panel active">
-
-      <!-- Formulario nueva señal -->
       <div class="card">
         <div class="card-title">📡 NUEVA SEÑAL</div>
         <div class="form-grid">
-
           <div class="field">
             <label>Activo</label>
-            <input type="text" id="sig-asset" list="assets-list" placeholder="Buscar activo..." autocomplete="off" />
+            <input type="text" id="sig-asset-input" list="assets-list" placeholder="Buscar activo…" autocomplete="off" />
             <datalist id="assets-list">
-              <option value="EUR/USD">
-              <option value="GBP/USD">
-              <option value="USD/JPY">
-              <option value="USD/CHF">
-              <option value="AUD/USD">
-              <option value="USD/CAD">
-              <option value="NZD/USD">
-              <option value="EUR/GBP">
-              <option value="EUR/JPY">
-              <option value="GBP/JPY">
-              <option value="EUR/AUD">
-              <option value="GBP/AUD">
-              <option value="Gold (XAU/USD)">
-              <option value="Silver (XAG/USD)">
-              <option value="Oil (WTI)">
-              <option value="EUR/USD OTC">
-              <option value="GBP/USD OTC">
-              <option value="USD/JPY OTC">
-              <option value="AUD/USD OTC">
-              <option value="USD/CAD OTC">
-              <option value="EUR/JPY OTC">
-              <option value="GBP/JPY OTC">
-              <option value="NZD/USD OTC">
-              <option value="USD/CHF OTC">
-              <option value="EUR/GBP OTC">
-              <option value="USD/MXN OTC">
-              <option value="USD/BRL OTC">
-              <option value="EUR/USD Digital">
-              <option value="GBP/USD Digital">
-              <option value="USD/JPY Digital">
-              <option value="AUD/USD Digital">
-              <option value="BTC/USD Digital">
-              <option value="ETH/USD Digital">
+              <optgroup label="Regular"><option value="EUR/USD"><option value="GBP/USD"><option value="USD/JPY"><option value="USD/CHF"><option value="AUD/USD"><option value="USD/CAD"><option value="NZD/USD"><option value="EUR/GBP"><option value="EUR/JPY"><option value="GBP/JPY"><option value="EUR/AUD"><option value="GBP/AUD"><option value="Gold (XAU/USD)"><option value="Silver (XAG/USD)"><option value="Oil (WTI)"></optgroup>
+              <optgroup label="OTC"><option value="EUR/USD OTC"><option value="GBP/USD OTC"><option value="USD/JPY OTC"><option value="AUD/USD OTC"><option value="USD/CAD OTC"><option value="EUR/JPY OTC"><option value="GBP/JPY OTC"><option value="NZD/USD OTC"><option value="USD/CHF OTC"><option value="EUR/GBP OTC"><option value="USD/MXN OTC"><option value="USD/BRL OTC"></optgroup>
+              <optgroup label="Digital"><option value="EUR/USD Digital"><option value="GBP/USD Digital"><option value="USD/JPY Digital"><option value="AUD/USD Digital"><option value="BTC/USD Digital"><option value="ETH/USD Digital"></optgroup>
             </datalist>
+            <input type="hidden" id="sig-asset" />
           </div>
-
           <div class="field">
             <label>Broker</label>
             <select id="sig-broker">
-              <optgroup label="── IQ Option">
-                <option value="IQ Option">IQ Option</option>
-                <option value="IQ Option (OTC)">IQ Option (OTC)</option>
-                <option value="IQ Option (Digital)">IQ Option (Digital)</option>
-              </optgroup>
-              <optgroup label="── Exnova">
-                <option value="Exnova">Exnova</option>
-                <option value="Exnova (OTC)">Exnova (OTC)</option>
-                <option value="Exnova (Digital)">Exnova (Digital)</option>
-              </optgroup>
-              <optgroup label="── Ambos">
-                <option value="IQ Option / Exnova">IQ Option / Exnova</option>
-                <option value="IQ Option / Exnova (OTC)">IQ Option / Exnova (OTC)</option>
-                <option value="IQ Option / Exnova (Digital)">IQ Option / Exnova (Digital)</option>
-              </optgroup>
+              <optgroup label="IQ Option"><option>IQ Option</option><option>IQ Option (OTC)</option><option>IQ Option (Digital)</option></optgroup>
+              <optgroup label="Exnova"><option>Exnova</option><option>Exnova (OTC)</option><option>Exnova (Digital)</option></optgroup>
+              <optgroup label="Ambos"><option>IQ Option / Exnova</option><option>IQ Option / Exnova (OTC)</option><option>IQ Option / Exnova (Digital)</option></optgroup>
             </select>
           </div>
-
           <div class="field">
             <label>Dirección</label>
-            <select id="sig-direction" onchange="updateDirectionColor(this)" style="color:#00ff88;font-weight:700">
-              <option value="CALL" style="color:#00ff88">▲ CALL</option>
-              <option value="PUT"  style="color:#ff3366">▼ PUT</option>
+            <select id="sig-direction" onchange="updateDirColor(this)" style="color:#00ff88;font-weight:700;background:rgba(0,255,136,0.08);border-color:rgba(0,255,136,0.3)">
+              <option value="CALL" style="color:#00ff88;background:#0d1426">▲ CALL</option>
+              <option value="PUT"  style="color:#ff3366;background:#0d1426">▼ PUT</option>
             </select>
           </div>
-
           <div class="field">
-            <label>Hora de Entrada (MM:SS)</label>
+            <label>Hora Entrada (MM:SS)</label>
             <div style="display:flex;gap:6px;align-items:center">
-              <input type="number" id="sig-entry-min" min="0" max="59" placeholder="MM"
-                style="width:72px;text-align:center;padding:11px 8px" />
-              <span style="color:var(--accent);font-weight:700;font-size:20px;line-height:1">:</span>
-              <input type="number" id="sig-entry-sec" min="0" max="59" placeholder="SS"
-                style="width:72px;text-align:center;padding:11px 8px" />
+              <input type="number" id="sig-entry-min" min="0" max="59" placeholder="MM" style="width:70px;text-align:center;padding:10px 6px" />
+              <span style="color:var(--accent);font-weight:700;font-size:20px">:</span>
+              <input type="number" id="sig-entry-sec" min="0" max="59" placeholder="SS" style="width:70px;text-align:center;padding:10px 6px" />
             </div>
           </div>
-
           <div class="field">
             <label>Expiración</label>
             <select id="sig-expiry">
-              <option value="1">1 minuto</option>
-              <option value="2">2 minutos</option>
-              <option value="3">3 minutos</option>
-              <option value="5">5 minutos</option>
-              <option value="10">10 minutos</option>
-              <option value="15">15 minutos</option>
+              <option value="1">1 minuto</option><option value="2">2 minutos</option>
+              <option value="3">3 minutos</option><option value="5">5 minutos</option>
+              <option value="10">10 minutos</option><option value="15">15 minutos</option>
               <option value="30">30 minutos</option>
             </select>
           </div>
-
         </div>
         <button class="btn-primary" id="btn-create-signal" onclick="submitSignal()" style="margin-top:16px">
           📡 ENVIAR SEÑAL
         </button>
       </div>
 
-      <!-- Tabla de señales -->
       <div class="card">
         <div class="card-title">📋 HISTORIAL DE SEÑALES</div>
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr>
-                <th>Activo</th><th>Broker</th><th>Dirección</th>
-                <th>Entrada</th><th>Expiración</th><th>Estado</th><th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="signals-table-body">
-              <tr><td colspan="7" class="empty-row">Cargando señales…</td></tr>
-            </tbody>
+            <thead><tr><th>Activo</th><th>Broker</th><th>Dir.</th><th>Entrada</th><th>Exp.</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="signals-table-body"><tr><td colspan="7" class="empty-row">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB USUARIOS -->
+    <!-- ─── TAB USUARIOS ────────────────────────────────── -->
     <div id="tab-users" class="tab-panel">
       <div class="card">
         <div class="card-title">👥 GESTIÓN DE USUARIOS</div>
         <div class="table-wrap">
           <table>
-            <thead>
-              <tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr>
-            </thead>
-            <tbody id="users-table-body">
-              <tr><td colspan="5" class="empty-row">Cargando usuarios…</td></tr>
-            </tbody>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Acciones</th></tr></thead>
+            <tbody id="users-table-body"><tr><td colspan="5" class="empty-row">Cargando…</td></tr></tbody>
           </table>
         </div>
       </div>
     </div>
 
-    <!-- TAB ESTADÍSTICAS -->
+    <!-- ─── TAB ESTADÍSTICAS ─────────────────────────────── -->
     <div id="tab-stats" class="tab-panel">
       <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-val" id="stat-total">—</div>
-          <div class="stat-label">Total Señales</div>
-        </div>
-        <div class="stat-card win-card">
-          <div class="stat-val" id="stat-win">—</div>
-          <div class="stat-label">WIN ✅</div>
-        </div>
-        <div class="stat-card loss-card">
-          <div class="stat-val" id="stat-loss">—</div>
-          <div class="stat-label">LOSS ❌</div>
-        </div>
-        <div class="stat-card draw-card">
-          <div class="stat-val" id="stat-draw">—</div>
-          <div class="stat-label">DOJI ➖</div>
-        </div>
-        <div class="stat-card pct-card">
-          <div class="stat-val" id="stat-pct">—</div>
-          <div class="stat-label">Efectividad</div>
-        </div>
+        <div class="stat-card"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Total Señales</div></div>
+        <div class="stat-card win-card"><div class="stat-val" id="stat-win">—</div><div class="stat-label">WIN ✅</div></div>
+        <div class="stat-card loss-card"><div class="stat-val" id="stat-loss">—</div><div class="stat-label">LOSS ❌</div></div>
+        <div class="stat-card draw-card"><div class="stat-val" id="stat-draw">—</div><div class="stat-label">DOJI ➖</div></div>
+        <div class="stat-card pct-card"><div class="stat-val" id="stat-pct">—</div><div class="stat-label">Efectividad</div></div>
       </div>
       <div class="card">
         <div class="card-title">📈 BARRA DE EFECTIVIDAD</div>
-        <div class="win-bar-wrap">
-          <div class="win-bar" id="win-bar"></div>
+        <div class="win-bar-wrap"><div class="win-bar" id="win-bar"></div></div>
+        <p style="font-size:12px;color:var(--muted);margin-top:10px">Porcentaje WIN sobre total de resultados.</p>
+      </div>
+      <div class="card danger-zone">
+        <div class="card-title" style="color:var(--put)">🗑️ ZONA DE RESETEO</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Borra registros del historial. Los usuarios verán el cambio al instante.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button class="btn-warn" onclick="confirmResetStats()">🧹 BORRAR SOLO ESTADÍSTICAS</button>
+          <button class="btn-danger" onclick="confirmResetAll()">⚠️ BORRAR TODO (SEÑALES + STATS)</button>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin-top:10px;">
-          Porcentaje de señales WIN sobre el total de resultados registrados.
+      </div>
+    </div>
+
+    <!-- ─── TAB DASHBOARD ───────────────────────────────── -->
+    <div id="tab-dashboard" class="tab-panel">
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+        <div class="stat-card"><div class="stat-val" id="dash-total-users">—</div><div class="stat-label">Usuarios Total</div></div>
+        <div class="stat-card"><div class="stat-val" id="dash-active-users" style="color:var(--call)">—</div><div class="stat-label">Activos</div></div>
+        <div class="stat-card"><div class="stat-val" id="dash-admin-count" style="color:var(--accent)">—</div><div class="stat-label">Admins</div></div>
+        <div class="stat-card"><div class="stat-val" id="dash-signals-total">—</div><div class="stat-label">Señales Totales</div></div>
+        <div class="stat-card win-card"><div class="stat-val" id="dash-win">—</div><div class="stat-label">WIN ✅</div></div>
+        <div class="stat-card loss-card"><div class="stat-val" id="dash-loss">—</div><div class="stat-label">LOSS ❌</div></div>
+        <div class="stat-card draw-card"><div class="stat-val" id="dash-draw">—</div><div class="stat-label">DOJI ➖</div></div>
+        <div class="stat-card pct-card"><div class="stat-val" id="dash-pct">—</div><div class="stat-label">Efectividad</div></div>
+      </div>
+      <div class="dash-grid">
+        <div class="card">
+          <div class="card-title">🏆 TOP 5 ACTIVOS MÁS SEÑALADOS</div>
+          <div id="dash-top-assets"><p style="color:var(--muted);font-size:13px">Cargando…</p></div>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ ÚLTIMAS 7 SEÑALES</div>
+          <div id="dash-recent-signals"><p style="color:var(--muted);font-size:13px">Cargando…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TAB AUDITORÍA ───────────────────────────────── -->
+    <div id="tab-audit" class="tab-panel">
+      <div class="card">
+        <div class="card-title">🔍 REGISTRO DE AUDITORÍA</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:14px">Todas las acciones del sistema quedan registradas automáticamente.</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha/Hora</th><th>Acción</th><th>Usuario</th><th>Detalle</th></tr></thead>
+            <tbody id="audit-table-body"><tr><td colspan="4" class="empty-row">Cargando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── TAB BOT IQ OPTION ───────────────────────────── -->
+    <div id="tab-bot" class="tab-panel">
+      <div class="card">
+        <div class="card-title">🤖 ESTADO DEL BOT IQ OPTION</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <span class="bot-status-badge" id="bot-status">Desconectado</span>
+          <span style="font-size:12px;color:var(--muted)">El bot envía señales automáticamente cuando está activo</span>
+        </div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.8">
+          El bot se integra vía <strong style="color:var(--accent)">webhook</strong> — envía una señal POST a Firestore con el secreto configurado. No requiere servidor propio si se usa desde Python/Node.js local.
         </p>
       </div>
 
-      <div class="card" style="border-color:rgba(255,51,102,0.3)">
-        <div class="card-title" style="color:var(--put)">🗑️ ZONA DE RESETEO</div>
-        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
-          Borra los registros del historial. Esto afecta lo que ven los usuarios en la sala.
-        </p>
-        <div style="display:flex;gap:12px;flex-wrap:wrap">
-          <button onclick="confirmResetStats()" style="padding:10px 20px;background:rgba(255,200,0,0.15);border:2px solid rgba(255,200,0,0.5);border-radius:10px;color:#ffc800;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">
-            🧹 BORRAR SOLO ESTADÍSTICAS
-          </button>
-          <button onclick="confirmResetAll()" style="padding:10px 20px;background:rgba(255,51,102,0.15);border:2px solid rgba(255,51,102,0.5);border-radius:10px;color:var(--put);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">
-            ⚠️ BORRAR TODO (SEÑALES + ESTADÍSTICAS)
-          </button>
+      <div class="card">
+        <div class="card-title">🧪 PROBAR SEÑAL DE BOT</div>
+        <div class="form-grid" style="margin-bottom:16px">
+          <div class="field">
+            <label>Activo</label>
+            <input type="text" id="bot-asset" value="EUR/USD OTC" />
+          </div>
+          <div class="field">
+            <label>Dirección</label>
+            <select id="bot-direction">
+              <option value="CALL">▲ CALL</option>
+              <option value="PUT">▼ PUT</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Expiración (min)</label>
+            <select id="bot-expiry">
+              <option value="1">1</option><option value="3">3</option><option value="5">5</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn-primary" onclick="testBotSignal()">🤖 ENVIAR SEÑAL TEST</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 CÓDIGO DE INTEGRACIÓN — PYTHON</div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:10px">Usa este script en tu bot de IQ Option para enviar señales automáticamente:</p>
+        <div class="code-block">import firebase_admin
+from firebase_admin import credentials, firestore
+from datetime import datetime
+
+# Inicializar Firebase
+cred = credentials.Certificate("serviceAccountKey.json")
+firebase_admin.initialize_app(cred)
+db = firestore.client()
+
+def send_signal(asset, direction, entry_mm, entry_ss, expiration, strategy="", confidence=0):
+    """Envía una señal a la sala en tiempo real"""
+    signal = {
+        "asset":      asset,
+        "broker":     "IQ Option",
+        "direction":  direction,       # "CALL" o "PUT"
+        "entryTime":  f"{entry_mm:02d}:{entry_ss:02d}",
+        "expiration": str(expiration),
+        "status":     "pending",
+        "source":     "bot",
+        "botName":    "IQBot-Auto",
+        "strategy":   strategy,
+        "confidence": confidence,
+        "createdAt":  firestore.SERVER_TIMESTAMP
+    }
+    ref = db.collection("signals").add(signal)
+    print(f"✅ Señal enviada: {asset} {direction} — ID: {ref[1].id}")
+    return ref[1].id
+
+# Ejemplo de uso:
+# send_signal("EUR/USD OTC", "CALL", 45, 0, 1, "RSI+MACD", 87)</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 CÓDIGO DE INTEGRACIÓN — NODE.JS</div>
+        <div class="code-block">const admin = require('firebase-admin');
+const serviceAccount = require('./serviceAccountKey.json');
+
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+const db = admin.firestore();
+
+async function sendSignal(asset, direction, entryTime, expiration, strategy = '', confidence = 0) {
+  const signal = {
+    asset, broker: 'IQ Option', direction,
+    entryTime, expiration: String(expiration),
+    status: 'pending', source: 'bot',
+    botName: 'IQBot-Node', strategy, confidence,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  };
+  const ref = await db.collection('signals').add(signal);
+  console.log(`✅ Signal sent: ${asset} ${direction} — ID: ${ref.id}`);
+  return ref.id;
+}
+
+// Ejemplo:
+// sendSignal('EUR/USD OTC', 'CALL', '45:00', 1, 'RSI', 85);</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🔑 PASOS PARA ACTIVAR EL BOT</div>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.7">
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="color:var(--accent);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;min-width:24px">1.</span>
+            <span>En Firebase Console → ⚙️ Configuración del proyecto → <strong style="color:var(--accent)">Cuentas de servicio</strong> → Generar nueva clave privada → Guarda el JSON como <code style="color:#00ff88">serviceAccountKey.json</code></span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="color:var(--accent);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;min-width:24px">2.</span>
+            <span>Instala el SDK: <code style="color:#00ff88">pip install firebase-admin</code> (Python) o <code style="color:#00ff88">npm install firebase-admin</code> (Node)</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="color:var(--accent);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;min-width:24px">3.</span>
+            <span>Usa la función <code style="color:#00ff88">send_signal()</code> desde tu lógica de bot — cuando detectes una entrada, llama la función y la señal aparecerá en la sala de usuarios al instante</span>
+          </div>
+          <div style="display:flex;gap:12px;align-items:flex-start">
+            <span style="color:var(--accent);font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;min-width:24px">4.</span>
+            <span>Para marcar resultados automáticamente, actualiza el campo <code style="color:#00ff88">status</code> del documento a <code style="color:#00ff88">"win"</code>, <code style="color:#00ff88">"loss"</code> o <code style="color:#00ff88">"draw"</code></span>
+          </div>
         </div>
       </div>
     </div>
 
   </main>
 
-  <!-- MODAL EDITAR SEÑAL -->
+  <!-- MODAL EDITAR -->
   <div class="modal-overlay" id="edit-modal">
     <div class="modal-box">
       <h3>✏️ EDITAR SEÑAL</h3>
       <div class="form-grid">
-        <div class="field">
-          <label>Activo</label>
-          <input type="text" id="edit-asset" />
+        <div class="field"><label>Activo</label><input type="text" id="edit-asset" /></div>
+        <div class="field"><label>Broker</label><input type="text" id="edit-broker" /></div>
+        <div class="field"><label>Dirección</label>
+          <select id="edit-direction"><option value="CALL">▲ CALL</option><option value="PUT">▼ PUT</option></select>
         </div>
-        <div class="field">
-          <label>Broker</label>
-          <input type="text" id="edit-broker" />
-        </div>
-        <div class="field">
-          <label>Dirección</label>
-          <select id="edit-direction">
-            <option value="CALL">▲ CALL</option>
-            <option value="PUT">▼ PUT</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Hora Entrada</label>
-          <input type="time" id="edit-entry" />
-        </div>
-        <div class="field">
-          <label>Expiración (min)</label>
-          <input type="text" id="edit-expiry" />
-        </div>
+        <div class="field"><label>Hora Entrada</label><input type="text" id="edit-entry" placeholder="MM:SS" /></div>
+        <div class="field"><label>Expiración (min)</label><input type="text" id="edit-expiry" /></div>
       </div>
       <div class="modal-actions">
         <button class="btn-outline" onclick="closeEditModal()">CANCELAR</button>
@@ -534,7 +454,6 @@
     </div>
   </div>
 
-  <!-- TOAST -->
   <div id="toast-container"></div>
 
   <!-- Firebase -->
@@ -548,30 +467,15 @@
   <script src="js/signal-controller.js"></script>
   <script src="js/users-controller.js"></script>
   <script src="js/admin-controller.js"></script>
+
   <script>
-    document.addEventListener("DOMContentLoaded", initAdmin);
-
-    async function confirmResetStats() {
-      if (confirm("¿Borrar TODAS las estadísticas? Los resultados WIN/LOSS/DOJI se eliminarán.\nLas señales del historial se mantendrán.")) {
-        try {
-          await deleteAllResults();
-          showToast("✅ Estadísticas borradas", "success");
-          loadStats();
-        } catch(e) { showToast("Error: " + e.message, "error"); }
-      }
-    }
-
-    async function confirmResetAll() {
-      if (confirm("⚠️ ¿Borrar TODO? Se eliminarán señales y estadísticas.\nEsto no se puede deshacer.")) {
-        if (confirm("¿Confirmas que deseas borrar TODO el historial?")) {
-          try {
-            await deleteAllSignalsAndResults();
-            showToast("✅ Todo el historial borrado", "success");
-            loadStats();
-          } catch(e) { showToast("Error: " + e.message, "error"); }
-        }
-      }
-    }
+    // Sincronizar sig-asset-input con sig-asset oculto
+    document.addEventListener("DOMContentLoaded", () => {
+      const inp = document.getElementById("sig-asset-input");
+      const hid = document.getElementById("sig-asset");
+      if (inp && hid) inp.addEventListener("input", () => hid.value = inp.value);
+      initAdmin();
+    });
   </script>
 </body>
 </html>
