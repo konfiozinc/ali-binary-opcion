@@ -479,6 +479,21 @@
           Porcentaje de señales WIN sobre el total de resultados registrados.
         </p>
       </div>
+
+      <div class="card" style="border-color:rgba(255,51,102,0.3)">
+        <div class="card-title" style="color:var(--put)">🗑️ ZONA DE RESETEO</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">
+          Borra los registros del historial. Esto afecta lo que ven los usuarios en la sala.
+        </p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button onclick="confirmResetStats()" style="padding:10px 20px;background:rgba(255,200,0,0.15);border:2px solid rgba(255,200,0,0.5);border-radius:10px;color:#ffc800;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">
+            🧹 BORRAR SOLO ESTADÍSTICAS
+          </button>
+          <button onclick="confirmResetAll()" style="padding:10px 20px;background:rgba(255,51,102,0.15);border:2px solid rgba(255,51,102,0.5);border-radius:10px;color:var(--put);font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">
+            ⚠️ BORRAR TODO (SEÑALES + ESTADÍSTICAS)
+          </button>
+        </div>
+      </div>
     </div>
 
   </main>
@@ -535,6 +550,28 @@
   <script src="js/admin-controller.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", initAdmin);
+
+    async function confirmResetStats() {
+      if (confirm("¿Borrar TODAS las estadísticas? Los resultados WIN/LOSS/DOJI se eliminarán.\nLas señales del historial se mantendrán.")) {
+        try {
+          await deleteAllResults();
+          showToast("✅ Estadísticas borradas", "success");
+          loadStats();
+        } catch(e) { showToast("Error: " + e.message, "error"); }
+      }
+    }
+
+    async function confirmResetAll() {
+      if (confirm("⚠️ ¿Borrar TODO? Se eliminarán señales y estadísticas.\nEsto no se puede deshacer.")) {
+        if (confirm("¿Confirmas que deseas borrar TODO el historial?")) {
+          try {
+            await deleteAllSignalsAndResults();
+            showToast("✅ Todo el historial borrado", "success");
+            loadStats();
+          } catch(e) { showToast("Error: " + e.message, "error"); }
+        }
+      }
+    }
   </script>
 </body>
 </html>
