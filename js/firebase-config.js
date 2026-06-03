@@ -1,6 +1,5 @@
 // ============================================================
-// FIREBASE CONFIG — ALI BINARY OPTIONS PRO
-// Reemplaza estos valores con los de tu proyecto Firebase
+// FIREBASE CONFIG — ALÍ BINARY OPTIONS PRO v2.0
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyDRfZYY3d4ul1PJEp-KMHMYfbkT6QULk3U",
@@ -13,12 +12,27 @@ const firebaseConfig = {
   measurementId: "G-CDXNMWGHJD"
 };
 
-// Inicializar Firebase
 firebase.initializeApp(firebaseConfig);
 
-// Exportar servicios globales
 const auth = firebase.auth();
 const db   = firebase.firestore();
 
-// Persistencia de sesión LOCAL (sobrevive cierre de pestaña)
+// Habilitar persistencia offline
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+
+// ── AUDIT LOG ───────────────────────────────────────────────
+async function writeAuditLog(action, details = {}) {
+  try {
+    const user = auth.currentUser;
+    await db.collection("audit_logs").add({
+      action,
+      details,
+      uid:       user ? user.uid   : "system",
+      email:     user ? user.email : "system",
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      userAgent: navigator.userAgent.substring(0, 120)
+    });
+  } catch(e) { console.warn("Audit log error:", e); }
+}
