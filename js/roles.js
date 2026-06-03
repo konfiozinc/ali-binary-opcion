@@ -1,97 +1,81 @@
 // ============================================================
-// ROLES.JS — Gestión de roles y redirección
+// ROLES.JS v2.0 — Multi-admin por Firestore role='admin'
 // ============================================================
 
-const ADMIN_EMAIL = "damoatrader1015@gmail.com";
+const SUPER_ADMIN = "damoatrader1015@gmail.com";
 
-// Obtener documento del usuario desde Firestore
 async function getUserDoc(uid) {
   const snap = await db.collection("users").doc(uid).get();
-  if (!snap.exists) return null;
-  return snap.data();
+  return snap.exists ? snap.data() : null;
+}
+
+function isAdminRole(userData) {
+  return userData && userData.role === "admin";
 }
 
 // Redirigir según rol
 async function redirectByRole(user) {
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-
-  // Admin check por email (fallback rápido)
-  if (user.email === ADMIN_EMAIL) {
-    window.location.href = "admin.html";
-    return;
-  }
-
-  // Verificar Firestore para role persistido
+  if (!user) { window.location.href = "index.html"; return; }
   try {
-    const userData = await getUserDoc(user.uid);
+    let userData = await getUserDoc(user.uid);
     if (!userData) {
-      // Usuario nuevo sin doc, crear doc user
-      await db.collection("users").doc(user.uid).set({
-        uid: user.uid,
-        nombre: user.displayName || user.email.split("@")[0],
-        email: user.email,
-        role: "user",
-        activo: true,
+      const role = user.email === SUPER_ADMIN ? "admin" : "user";
+      userData = {
+        uid: user.uid, nombre: user.displayName || user.email.split("@")[0],
+        email: user.email, role, activo: true,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      window.location.href = "sala.html";
-      return;
+      };
+      await db.collection("users").doc(user.uid).set(userData);
+      await writeAuditLog("USER_REGISTERED", { email: user.email, role });
     }
-
     if (!userData.activo) {
       await auth.signOut();
       showAuthError("Tu cuenta ha sido bloqueada por el administrador.");
       return;
     }
-
-    if (userData.role === "admin") {
-      window.location.href = "admin.html";
-    } else {
-      window.location.href = "sala.html";
-    }
-  } catch (e) {
-    console.error("Error obteniendo rol:", e);
-    window.location.href = "sala.html";
+    await writeAuditLog("USER_LOGIN", { email: user.email, role: userData.role });
+    window.location.href = isAdminRole(userData) ? "admin.html" : "sala.html";
+  } catch(e) {
+    console.error("redirectByRole error:", e);
+    window.location.href = user.email === SUPER_ADMIN ? "admin.html" : "sala.html";
   }
 }
 
-// Proteger página admin — llamar al inicio de admin.html
+// Proteger admin.html
 async function requireAdmin() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       unsub();
       if (!user) { window.location.href = "index.html"; return; }
-      const userData = await getUserDoc(user.uid);
-      if (!userData || userData.role !== "admin") {
-        window.location.href = "sala.html";
-        return;
+      try {
+        const userData = await getUserDoc(user.uid);
+        if (!userData || !userData.activo) { await auth.signOut(); window.location.href = "index.html"; return; }
+        if (!isAdminRole(userData)) { window.location.href = "sala.html"; return; }
+        resolve(userData);
+      } catch(e) {
+        if (user.email === SUPER_ADMIN) resolve({ nombre: "Admin", email: user.email, role: "admin", activo: true });
+        else window.location.href = "sala.html";
       }
-      resolve(userData);
     });
   });
 }
 
-// Proteger página sala — llamar al inicio de sala.html
+// Proteger sala.html
 async function requireAuth() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       unsub();
       if (!user) { window.location.href = "index.html"; return; }
-      const userData = await getUserDoc(user.uid);
-      if (!userData || !userData.activo) {
-        await auth.signOut();
-        window.location.href = "index.html";
-        return;
-      }
-      resolve(userData);
+      try {
+        const userData = await getUserDoc(user.uid);
+        if (!userData || !userData.activo) { await auth.signOut(); window.location.href = "index.html"; return; }
+        resolve(userData);
+      } catch(e) { resolve({ nombre: user.email, email: user.email, role: "user", activo: true }); }
     });
   });
 }
 
 function showAuthError(msg) {
-  const el = document.getElementById("auth-error");
+  const el = document.getElementById("auth-error") || document.getElementById("login-error");
   if (el) { el.textContent = msg; el.style.display = "block"; }
 }
