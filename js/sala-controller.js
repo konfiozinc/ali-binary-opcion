@@ -1,19 +1,51 @@
 // ============================================================
-// SALA-CONTROLLER.JS v3.0
+// SALA-CONTROLLER.JS v3.1
 // Flujo: Admin envía señal → Firestore → Sala recibe → SONIDO
 // ============================================================
 
-let unsubSalaSignals = null;
-let currentUser      = null;
-let prevActiveIds    = new Set();
-let timerIntervals   = {};
+let unsubSalaSignals  = null;
+let currentUser       = null;
+let prevActiveIds     = null; // null = primera carga
+let timerIntervals    = {};
+let audioUnlocked     = false;
 
 // ── INIT ────────────────────────────────────────────────────
 async function initSala() {
   currentUser = await requireAuth();
   document.getElementById("user-name").textContent = currentUser.nombre || currentUser.email;
+
+  // Desbloquear audio con el primer toque del usuario
+  unlockAudioOnInteraction();
+
   startSignalListener();
   loadSalaStats();
+}
+
+// ── DESBLOQUEAR AUDIO ─────────────────────────────────────────
+// Los navegadores bloquean autoplay hasta que el usuario toca la pantalla
+function unlockAudioOnInteraction() {
+  const unlock = () => {
+    if (audioUnlocked) return;
+    const audio = document.getElementById("alertAudio");
+    if (audio) {
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audioUnlocked = true;
+        console.log("✅ Audio desbloqueado");
+      }).catch(() => {
+        audioUnlocked = true; // igualmente marcarlo para intentar después
+      });
+    } else {
+      audioUnlocked = true;
+    }
+    document.removeEventListener("click",      unlock);
+    document.removeEventListener("touchstart", unlock);
+    document.removeEventListener("keydown",    unlock);
+  };
+  document.addEventListener("click",      unlock, { once: true });
+  document.addEventListener("touchstart", unlock, { once: true });
+  document.addEventListener("keydown",    unlock, { once: true });
 }
 
 // ── LISTENER TIEMPO REAL ─────────────────────────────────────
@@ -26,14 +58,19 @@ function renderSalaSignals(signals) {
   const active  = signals.filter(s => s.status === "pending");
   const history = signals.filter(s => s.status !== "pending");
 
-  // Detectar señales NUEVAS (IDs que no estaban antes)
-  const currentIds = new Set(active.map(s => s.id));
-  const hasNew     = active.some(s => !prevActiveIds.has(s.id));
-  if (hasNew && prevActiveIds.size > 0) {
-    // Solo suena si ya había señales antes (no en la carga inicial)
-    playAlertSound();
+  if (prevActiveIds === null) {
+    // Primera carga — solo guardar IDs sin sonar
+    prevActiveIds = new Set(active.map(s => s.id));
+  } else {
+    // Detectar señales que no estaban en la carga anterior
+    const newSignals = active.filter(s => !prevActiveIds.has(s.id));
+    if (newSignals.length > 0) {
+      playAlertSound();
+      // Mostrar notificación visual también
+      showSalaToast(`📡 Nueva señal: ${newSignals[0].asset} ${newSignals[0].direction}`, "success");
+    }
+    prevActiveIds = new Set(active.map(s => s.id));
   }
-  prevActiveIds = currentIds;
 
   renderActiveSignals(active);
   renderHistorySignals(history);
@@ -68,7 +105,7 @@ function renderActiveSignals(signals) {
           <div class="signal-asset">${s.asset}</div>
           <div class="signal-meta">
             <span>🏦 ${s.broker}</span>
-            <span>⏰ Entrada: <strong style="font-size:18px;color:var(--accent);letter-spacing:1px">${s.entryTime}</strong></span>
+            <span>⏰ Entrada: <strong style="font-size:18px;color:var(--accent);letter-spacing:2px">${s.entryTime}</strong></span>
             <span>⏱️ ${s.expiration} min</span>
           </div>
         </div>
@@ -159,32 +196,40 @@ async function loadSalaStats() {
   if (bar) bar.style.width = stats.pct + "%";
 }
 
-// ── SONIDO DE ALERTA ───────────────────────────────────────────
-// Usa el elemento <audio> con mixkit para máxima compatibilidad
+// ── SONIDO ─────────────────────────────────────────────────────
 function playAlertSound() {
-  try {
-    const audio = document.getElementById("alertAudio");
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => playFallbackBeep());
-    } else {
-      playFallbackBeep();
+  // Intentar con el elemento <audio> (mixkit)
+  const audio = document.getElementById("alertAudio");
+  if (audio) {
+    audio.currentTime = 0;
+    const p = audio.play();
+    if (p !== undefined) {
+      p.catch(() => {
+        // Si falla (autoplay bloqueado), usar Web Audio API
+        playFallbackBeep();
+      });
     }
-  } catch(e) {
+  } else {
     playFallbackBeep();
   }
 }
 
-// Fallback con Web Audio API si el archivo no carga
+// Fallback Web Audio API — sonido fuerte con compresor
 function playFallbackBeep() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -6;
     comp.ratio.value = 20;
     comp.connect(ctx.destination);
 
-    function note(freq, start, dur, vol) {
+    const notes = [
+      [1200, 0.00, 0.12, 1.0],
+      [1200, 0.17, 0.12, 1.0],
+      [1200, 0.34, 0.12, 1.0],
+      [1500, 0.55, 0.50, 1.0],
+    ];
+    notes.forEach(([freq, start, dur, vol]) => {
       const osc  = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "square";
@@ -197,11 +242,7 @@ function playFallbackBeep() {
       gain.connect(comp);
       osc.start(ctx.currentTime + start);
       osc.stop(ctx.currentTime + start + dur + 0.05);
-    }
-    note(1200, 0.00, 0.12, 1.0);
-    note(1200, 0.17, 0.12, 1.0);
-    note(1200, 0.34, 0.12, 1.0);
-    note(1400, 0.55, 0.45, 1.0);
+    });
   } catch(e) {}
 }
 
@@ -216,8 +257,4 @@ function showSalaToast(msg, type = "info") {
     setTimeout(() => t.classList.add("show"), 10);
     setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 4000);
   }
-}
-
-function formatSalaTime(date) {
-  return date.toLocaleString("es-CO", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
