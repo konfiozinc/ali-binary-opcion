@@ -1,54 +1,133 @@
 // ============================================================
-// SALA-CONTROLLER.JS v3.1
-// Flujo: Admin envía señal → Firestore → Sala recibe → SONIDO
+// SALA-CONTROLLER.JS — Release 1.0
+// Correcciones: cronómetro HH:MM, sonido con persistencia,
+// botón instalar PWA, botón activar sonido
 // ============================================================
 
-let unsubSalaSignals  = null;
-let currentUser       = null;
-let prevActiveIds     = null; // null = primera carga
-let timerIntervals    = {};
-let audioUnlocked     = false;
+let unsubSalaSignals = null;
+let currentUser      = null;
+let prevActiveIds    = null;
+let timerIntervals   = {};
+let audioEnabled     = false;
+let deferredInstall  = null;
 
-// ── INIT ────────────────────────────────────────────────────
+// ── INIT ─────────────────────────────────────────────────────
 async function initSala() {
   currentUser = await requireAuth();
-  document.getElementById("user-name").textContent = currentUser.nombre || currentUser.email;
+  document.getElementById("user-name").textContent =
+    currentUser.nombre || currentUser.email;
 
-  // Desbloquear audio con el primer toque del usuario
-  unlockAudioOnInteraction();
-
+  initAudio();
+  initPWA();
   startSignalListener();
   loadSalaStats();
 }
 
-// ── DESBLOQUEAR AUDIO ─────────────────────────────────────────
-// Los navegadores bloquean autoplay hasta que el usuario toca la pantalla
-function unlockAudioOnInteraction() {
-  const unlock = () => {
-    if (audioUnlocked) return;
-    const audio = document.getElementById("alertAudio");
-    if (audio) {
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audioUnlocked = true;
-        console.log("✅ Audio desbloqueado");
-      }).catch(() => {
-        audioUnlocked = true; // igualmente marcarlo para intentar después
-      });
-    } else {
-      audioUnlocked = true;
-    }
-    document.removeEventListener("click",      unlock);
-    document.removeEventListener("touchstart", unlock);
-    document.removeEventListener("keydown",    unlock);
-  };
-  document.addEventListener("click",      unlock, { once: true });
-  document.addEventListener("touchstart", unlock, { once: true });
-  document.addEventListener("keydown",    unlock, { once: true });
+// ═══════════════════════════════════════════════════════════
+// AUDIO — Persistencia + Botón explícito
+// ═══════════════════════════════════════════════════════════
+function initAudio() {
+  // Leer preferencia guardada
+  const saved = localStorage.getItem("audioEnabled");
+  if (saved === "true") {
+    audioEnabled = true;
+    updateAudioBtn(true);
+  } else {
+    // Mostrar aviso si no está activado
+    updateAudioBtn(false);
+  }
 }
 
-// ── LISTENER TIEMPO REAL ─────────────────────────────────────
+function toggleAudio() {
+  if (!audioEnabled) {
+    enableAudio();
+  } else {
+    disableAudio();
+  }
+}
+
+function enableAudio() {
+  const audio = document.getElementById("alertAudio");
+  if (!audio) { audioEnabled = true; localStorage.setItem("audioEnabled","true"); updateAudioBtn(true); return; }
+
+  // Reproducir silenciosamente para desbloquear
+  const originalVol = audio.volume;
+  audio.volume = 0.01;
+  audio.currentTime = 0;
+  audio.play().then(() => {
+    setTimeout(() => { audio.pause(); audio.currentTime = 0; audio.volume = originalVol; }, 300);
+    audioEnabled = true;
+    localStorage.setItem("audioEnabled", "true");
+    updateAudioBtn(true);
+    showSalaToast("🔊 Sonido activado", "success");
+  }).catch(() => {
+    // Fallback: marcar como activado y confiar en interacción futura
+    audioEnabled = true;
+    localStorage.setItem("audioEnabled", "true");
+    updateAudioBtn(true);
+    showSalaToast("🔊 Sonido activado", "success");
+  });
+}
+
+function disableAudio() {
+  audioEnabled = false;
+  localStorage.setItem("audioEnabled", "false");
+  updateAudioBtn(false);
+  showSalaToast("🔇 Sonido desactivado", "info");
+}
+
+function updateAudioBtn(enabled) {
+  const btn = document.getElementById("btn-audio");
+  if (!btn) return;
+  if (enabled) {
+    btn.textContent = "🔊 SONIDO ON";
+    btn.style.background = "rgba(0,255,136,0.15)";
+    btn.style.borderColor = "rgba(0,255,136,0.5)";
+    btn.style.color = "#00ff88";
+  } else {
+    btn.textContent = "🔇 ACTIVAR SONIDO";
+    btn.style.background = "rgba(255,200,0,0.1)";
+    btn.style.borderColor = "rgba(255,200,0,0.4)";
+    btn.style.color = "#ffc800";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// PWA — Capturar e instalar
+// ═══════════════════════════════════════════════════════════
+function initPWA() {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    const btn = document.getElementById("btn-install");
+    if (btn) btn.style.display = "inline-flex";
+  });
+
+  window.addEventListener("appinstalled", () => {
+    const btn = document.getElementById("btn-install");
+    if (btn) btn.style.display = "none";
+    deferredInstall = null;
+    showSalaToast("✅ App instalada correctamente", "success");
+  });
+}
+
+function installApp() {
+  if (!deferredInstall) {
+    showSalaToast("Usa el menú del navegador → 'Instalar aplicación'", "info");
+    return;
+  }
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(result => {
+    if (result.outcome === "accepted") {
+      showSalaToast("✅ Instalando app…", "success");
+    }
+    deferredInstall = null;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// LISTENER FIRESTORE EN TIEMPO REAL
+// ═══════════════════════════════════════════════════════════
 function startSignalListener() {
   if (unsubSalaSignals) unsubSalaSignals();
   unsubSalaSignals = listenSignals(renderSalaSignals);
@@ -59,15 +138,16 @@ function renderSalaSignals(signals) {
   const history = signals.filter(s => s.status !== "pending");
 
   if (prevActiveIds === null) {
-    // Primera carga — solo guardar IDs sin sonar
+    // Primera carga — registrar IDs sin sonar
     prevActiveIds = new Set(active.map(s => s.id));
   } else {
-    // Detectar señales que no estaban en la carga anterior
     const newSignals = active.filter(s => !prevActiveIds.has(s.id));
     if (newSignals.length > 0) {
       playAlertSound();
-      // Mostrar notificación visual también
-      showSalaToast(`📡 Nueva señal: ${newSignals[0].asset} ${newSignals[0].direction}`, "success");
+      showSalaToast(
+        `📡 Nueva señal: ${newSignals[0].asset} ${newSignals[0].direction}`,
+        "success"
+      );
     }
     prevActiveIds = new Set(active.map(s => s.id));
   }
@@ -77,7 +157,9 @@ function renderSalaSignals(signals) {
   loadSalaStats();
 }
 
-// ── SEÑALES ACTIVAS ───────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// SEÑALES ACTIVAS
+// ═══════════════════════════════════════════════════════════
 function renderActiveSignals(signals) {
   const container = document.getElementById("active-signals");
   Object.values(timerIntervals).forEach(clearInterval);
@@ -120,43 +202,97 @@ function renderActiveSignals(signals) {
   signals.forEach(s => startSignalTimer(s));
 }
 
-// ── TIMER ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// CRONÓMETRO CORREGIDO — HH:MM real
+// entryTime formato "HH:MM" (ej: "07:50")
+// Calcula diferencia real entre ahora y esa hora del día
+// ═══════════════════════════════════════════════════════════
 function startSignalTimer(signal) {
   const el     = document.getElementById("timer-val-" + signal.id);
   const circle = document.getElementById("timer-" + signal.id);
   if (!el || !signal.entryTime) return;
 
+  // Parsear HH:MM de la hora de entrada
+  const parts = signal.entryTime.split(":");
+  const entryHour = parseInt(parts[0], 10);  // HH real
+  const entryMin  = parseInt(parts[1], 10);  // MM
+  const entrySec  = parts[2] ? parseInt(parts[2], 10) : 0;
+
   const tick = () => {
     if (!document.getElementById("timer-val-" + signal.id)) {
-      clearInterval(timerIntervals[signal.id]); return;
+      clearInterval(timerIntervals[signal.id]);
+      return;
     }
-    const now  = new Date();
-    const [mm, ss] = signal.entryTime.split(":").map(Number);
-    const entry = new Date();
-    entry.setHours(now.getHours(), mm, ss, 0);
-    let diff = Math.floor((entry - now) / 1000);
-    if (diff < -60) diff += 3600;
+
+    const now = new Date();
+
+    // Construir fecha/hora objetivo (hoy a HH:MM:SS)
+    const target = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      entryHour,
+      entryMin,
+      entrySec,
+      0
+    );
+
+    let diff = Math.floor((target - now) / 1000);
+
+    // Si ya pasó pero fue hace menos de 5 min, mostrar ¡YA!
+    // Si pasó hace más tiempo, puede ser para mañana
+    if (diff < -300) {
+      // Señal para el día siguiente
+      target.setDate(target.getDate() + 1);
+      diff = Math.floor((target - now) / 1000);
+    }
 
     if (diff <= 0) {
       el.textContent = "¡YA!";
-      el.style.color = "#00ff88";
-      if (circle) { circle.style.borderColor = "#00ff88"; circle.style.boxShadow = "0 0 20px rgba(0,255,136,0.6)"; }
-    } else {
-      const m = String(Math.floor(diff / 60)).padStart(2, "0");
-      const s = String(diff % 60).padStart(2, "0");
-      el.textContent = `${m}:${s}`;
+      el.style.color  = "#00ff88";
       if (circle) {
-        if (diff <= 10)      { el.style.color = "#ff3366"; circle.style.borderColor = "#ff3366"; }
-        else if (diff <= 30) { el.style.color = "#ffc800"; circle.style.borderColor = "#ffc800"; }
-        else                 { el.style.color = "var(--accent)"; circle.style.borderColor = "rgba(0,212,255,0.4)"; }
+        circle.style.borderColor = "#00ff88";
+        circle.style.boxShadow   = "0 0 20px rgba(0,255,136,0.6)";
+        circle.classList.add("pulse");
+      }
+    } else {
+      const hh = Math.floor(diff / 3600);
+      const mm = Math.floor((diff % 3600) / 60);
+      const ss = diff % 60;
+
+      // Si quedan más de 60 min mostrar HH:MM, si no MM:SS
+      if (hh > 0) {
+        el.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
+      } else {
+        el.textContent = `${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+      }
+
+      if (circle) {
+        if (diff <= 10) {
+          el.style.color = "#ff3366";
+          circle.style.borderColor = "#ff3366";
+          circle.style.boxShadow   = "0 0 15px rgba(255,51,102,0.5)";
+        } else if (diff <= 60) {
+          el.style.color = "#ffc800";
+          circle.style.borderColor = "#ffc800";
+          circle.style.boxShadow   = "0 0 10px rgba(255,200,0,0.4)";
+        } else {
+          el.style.color = "var(--accent)";
+          circle.style.borderColor = "rgba(0,212,255,0.4)";
+          circle.style.boxShadow   = "none";
+        }
+        circle.classList.remove("pulse");
       }
     }
   };
+
   tick();
   timerIntervals[signal.id] = setInterval(tick, 1000);
 }
 
-// ── HISTORIAL ─────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════════════════
 function renderHistorySignals(signals) {
   const tbody = document.getElementById("history-body");
   if (!signals.length) {
@@ -165,7 +301,7 @@ function renderHistorySignals(signals) {
   }
   tbody.innerHTML = signals.slice(0, 40).map(s => {
     const isCall = s.direction === "CALL";
-    const dir    = `<span class="badge ${isCall ? "call" : "put"}">${isCall ? "▲ CALL" : "▼ PUT"}</span>`;
+    const dir = `<span class="badge ${isCall ? "call" : "put"}">${isCall ? "▲ CALL" : "▼ PUT"}</span>`;
     return `<tr>
       <td><strong>${s.asset}</strong></td>
       <td>${dir}</td>
@@ -176,14 +312,17 @@ function renderHistorySignals(signals) {
 }
 
 function resultBadge(status) {
-  return {
+  const map = {
     win:  `<span class="badge win-b">✅ WIN</span>`,
     loss: `<span class="badge loss-b">❌ LOSS</span>`,
     draw: `<span class="badge draw-b">➖ DOJI</span>`
-  }[status] || `<span class="badge pending">⏳ Pendiente</span>`;
+  };
+  return map[status] || `<span class="badge pending">⏳ Pendiente</span>`;
 }
 
-// ── ESTADÍSTICAS ───────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// ESTADÍSTICAS
+// ═══════════════════════════════════════════════════════════
 async function loadSalaStats() {
   const stats = await getSignalStats();
   const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
@@ -196,25 +335,26 @@ async function loadSalaStats() {
   if (bar) bar.style.width = stats.pct + "%";
 }
 
-// ── SONIDO ─────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// SONIDO — Mixkit + Fallback Web Audio
+// ═══════════════════════════════════════════════════════════
 function playAlertSound() {
-  // Intentar con el elemento <audio> (mixkit)
+  if (!audioEnabled) {
+    // Mostrar aviso visual si el sonido no está activado
+    showSalaToast("🔇 Activa el sonido para recibir alertas de audio", "info");
+    return;
+  }
+
   const audio = document.getElementById("alertAudio");
   if (audio) {
     audio.currentTime = 0;
-    const p = audio.play();
-    if (p !== undefined) {
-      p.catch(() => {
-        // Si falla (autoplay bloqueado), usar Web Audio API
-        playFallbackBeep();
-      });
-    }
+    audio.volume = 1.0;
+    audio.play().catch(() => playFallbackBeep());
   } else {
     playFallbackBeep();
   }
 }
 
-// Fallback Web Audio API — sonido fuerte con compresor
 function playFallbackBeep() {
   try {
     const ctx  = new (window.AudioContext || window.webkitAudioContext)();
@@ -222,31 +362,21 @@ function playFallbackBeep() {
     comp.threshold.value = -6;
     comp.ratio.value = 20;
     comp.connect(ctx.destination);
-
-    const notes = [
-      [1200, 0.00, 0.12, 1.0],
-      [1200, 0.17, 0.12, 1.0],
-      [1200, 0.34, 0.12, 1.0],
-      [1500, 0.55, 0.50, 1.0],
-    ];
-    notes.forEach(([freq, start, dur, vol]) => {
-      const osc  = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "square";
-      osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
-      gain.gain.setValueAtTime(0, ctx.currentTime + start);
-      gain.gain.linearRampToValueAtTime(vol, ctx.currentTime + start + 0.01);
-      gain.gain.setValueAtTime(vol, ctx.currentTime + start + dur - 0.03);
-      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + start + dur);
-      osc.connect(gain);
-      gain.connect(comp);
-      osc.start(ctx.currentTime + start);
-      osc.stop(ctx.currentTime + start + dur + 0.05);
+    [[1200,0.00,0.12],[1200,0.17,0.12],[1200,0.34,0.12],[1500,0.55,0.50]].forEach(([f,t,d]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "square"; o.frequency.setValueAtTime(f, ctx.currentTime+t);
+      g.gain.setValueAtTime(0, ctx.currentTime+t);
+      g.gain.linearRampToValueAtTime(1.0, ctx.currentTime+t+0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime+t+d);
+      o.connect(g); g.connect(comp);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+d+0.05);
     });
   } catch(e) {}
 }
 
-// ── TOAST ──────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
 function showSalaToast(msg, type = "info") {
   const t = document.createElement("div");
   t.className = `toast toast-${type}`;
