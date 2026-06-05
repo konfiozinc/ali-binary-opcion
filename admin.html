@@ -156,8 +156,15 @@
       <img src="assets/logo.png" alt="logo" onerror="this.style.display='none'" />
       ALÍ BINARY OPTIONS PRO
     </div>
-    <div class="nav-right">
+    <div class="nav-right" style="display:flex;align-items:center;gap:8px">
       <div class="nav-user">Admin: <span id="admin-name">—</span></div>
+      <button id="btn-install-admin" onclick="installApp()"
+        style="display:none;padding:6px 12px;border:1px solid rgba(0,212,255,0.4);border-radius:8px;
+               background:rgba(0,212,255,0.12);color:var(--accent);
+               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;transition:all 0.2s">
+        📲 INSTALAR APP
+      </button>
       <button class="btn-logout" onclick="logoutUser()">SALIR</button>
     </div>
   </nav>
