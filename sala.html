@@ -295,8 +295,25 @@
       <img src="assets/logo.png" alt="logo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,212,255,0.4)" onerror="this.style.display='none'" />
       <span class="live-dot"></span>SALA PREMIUM
     </div>
-    <div class="nav-right">
-      <div class="nav-user">Hola, <span id="user-name">—</span></div>
+    <div class="nav-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <div class="nav-user" style="white-space:nowrap">Hola, <span id="user-name">—</span></div>
+      <!-- Botón Activar Sonido -->
+      <button id="btn-audio" onclick="toggleAudio()"
+        style="padding:6px 12px;border:1px solid rgba(255,200,0,0.4);border-radius:8px;
+               background:rgba(255,200,0,0.1);color:#ffc800;
+               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all 0.2s">
+        🔇 ACTIVAR SONIDO
+      </button>
+      <!-- Botón Instalar PWA — oculto hasta que esté disponible -->
+      <button id="btn-install" onclick="installApp()"
+        style="display:none;padding:6px 12px;border:1px solid rgba(0,212,255,0.4);border-radius:8px;
+               background:rgba(0,212,255,0.12);color:var(--accent);
+               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;white-space:nowrap;
+               align-items:center;gap:4px;transition:all 0.2s">
+        📲 INSTALAR APP
+      </button>
       <button class="btn-logout" onclick="logoutUser()">SALIR</button>
     </div>
   </nav>
@@ -434,6 +451,11 @@
   <script src="js/sala-controller.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", initSala);
+    // Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/ali-binary-opcion/sw.js')
+        .catch(() => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+    }
   </script>
 </body>
 </html>
