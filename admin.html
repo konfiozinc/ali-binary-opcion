@@ -187,7 +187,7 @@
         <div class="form-grid">
           <div class="field">
             <label>Activo</label>
-            <input type="text" id="sig-asset-input" list="assets-list" placeholder="Buscar activo…" autocomplete="off" />
+            <input type="text" id="sig-asset-input" onchange="document.getElementById('sig-asset').value=this.value" list="assets-list" placeholder="Buscar activo…" autocomplete="off" />
             <datalist id="assets-list">
               <optgroup label="Regular"><option value="EUR/USD"><option value="GBP/USD"><option value="USD/JPY"><option value="USD/CHF"><option value="AUD/USD"><option value="USD/CAD"><option value="NZD/USD"><option value="EUR/GBP"><option value="EUR/JPY"><option value="GBP/JPY"><option value="EUR/AUD"><option value="GBP/AUD"><option value="Gold (XAU/USD)"><option value="Silver (XAG/USD)"><option value="Oil (WTI)"></optgroup>
               <optgroup label="OTC"><option value="EUR/USD OTC"><option value="GBP/USD OTC"><option value="USD/JPY OTC"><option value="AUD/USD OTC"><option value="USD/CAD OTC"><option value="EUR/JPY OTC"><option value="GBP/JPY OTC"><option value="NZD/USD OTC"><option value="USD/CHF OTC"><option value="EUR/GBP OTC"><option value="USD/MXN OTC"><option value="USD/BRL OTC"></optgroup>
@@ -211,11 +211,11 @@
             </select>
           </div>
           <div class="field">
-            <label>Hora Entrada (MM:SS)</label>
+            <label>Hora Entrada (HH:MM)</label>
             <div style="display:flex;gap:6px;align-items:center">
-              <input type="number" id="sig-entry-min" min="0" max="59" placeholder="MM" style="width:70px;text-align:center;padding:10px 6px" />
+              <input type="number" id="sig-entry-min" min="0" max="23" placeholder="HH" style="width:70px;text-align:center;padding:10px 6px" />
               <span style="color:var(--accent);font-weight:700;font-size:20px">:</span>
-              <input type="number" id="sig-entry-sec" min="0" max="59" placeholder="SS" style="width:70px;text-align:center;padding:10px 6px" />
+              <input type="number" id="sig-entry-sec" min="0" max="59" placeholder="MM" style="width:70px;text-align:center;padding:10px 6px" />
             </div>
           </div>
           <div class="field">
@@ -271,6 +271,19 @@
         <div class="win-bar-wrap"><div class="win-bar" id="win-bar"></div></div>
         <p style="font-size:12px;color:var(--muted);margin-top:10px">Porcentaje WIN sobre total de resultados.</p>
       </div>
+      <!-- MODO MANTENIMIENTO -->
+      <div class="card" style="border-color:rgba(255,200,0,0.3);margin-bottom:16px">
+        <div class="card-title" style="color:#ffc800">⚙️ MODO MANTENIMIENTO</div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+          Activa para bloquear acceso a la sala. Los admins siempre pueden entrar.
+        </p>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <button class="btn-warn" onclick="toggleMaintenance(true)">🔴 ACTIVAR</button>
+          <button onclick="toggleMaintenance(false)" style="padding:10px 18px;background:rgba(0,255,136,0.12);border:2px solid rgba(0,255,136,0.4);border-radius:10px;color:#00ff88;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;letter-spacing:1px;cursor:pointer">🟢 DESACTIVAR</button>
+          <span id="maintenance-status" style="font-size:12px;color:var(--muted)">verificando…</span>
+        </div>
+      </div>
+
       <div class="card danger-zone">
         <div class="card-title" style="color:var(--put)">🗑️ ZONA DE RESETEO</div>
         <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Borra registros del historial. Los usuarios verán el cambio al instante.</p>
@@ -451,7 +464,7 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
         <div class="field"><label>Dirección</label>
           <select id="edit-direction"><option value="CALL">▲ CALL</option><option value="PUT">▼ PUT</option></select>
         </div>
-        <div class="field"><label>Hora Entrada</label><input type="text" id="edit-entry" placeholder="MM:SS" /></div>
+        <div class="field"><label>Hora Entrada</label><input type="text" id="edit-entry" placeholder="HH:MM (ej: 07:50)" /></div>
         <div class="field"><label>Expiración (min)</label><input type="text" id="edit-expiry" /></div>
       </div>
       <div class="modal-actions">
@@ -467,6 +480,7 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
@@ -482,7 +496,50 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
       const hid = document.getElementById("sig-asset");
       if (inp && hid) inp.addEventListener("input", () => hid.value = inp.value);
       initAdmin();
+      checkMaintenanceStatus();
     });
+
+    // ── MODO MANTENIMIENTO ──────────────────────────────────
+    async function toggleMaintenance(enabled) {
+      try {
+        await setMaintenance(enabled);
+        showToast(enabled ? "🔴 Mantenimiento ACTIVADO" : "🟢 Mantenimiento DESACTIVADO",
+                  enabled ? "error" : "success");
+        checkMaintenanceStatus();
+      } catch(e) { showToast("Error: " + e.message, "error"); }
+    }
+
+    async function checkMaintenanceStatus() {
+      try {
+        const snap = await db.collection("settings").doc("app").get();
+        const el   = document.getElementById("maintenance-status");
+        if (!el) return;
+        const on = snap.exists && snap.data().maintenance === true;
+        el.textContent = on ? "🔴 ACTIVO — sala bloqueada" : "🟢 Desactivado";
+        el.style.color = on ? "#ff3366" : "#00ff88";
+      } catch(e) {}
+    }
+
+    // ── PWA INSTALL ─────────────────────────────────────────
+    let _deferredInstall = null;
+    window.addEventListener("beforeinstallprompt", e => {
+      e.preventDefault(); _deferredInstall = e;
+      const b = document.getElementById("btn-install-admin");
+      if (b) b.style.display = "inline-flex";
+    });
+    window.addEventListener("appinstalled", () => {
+      _deferredInstall = null;
+      const b = document.getElementById("btn-install-admin");
+      if (b) b.style.display = "none";
+    });
+    function installApp() {
+      if (!_deferredInstall) { showToast("Usa el menú → Instalar aplicación", "info"); return; }
+      _deferredInstall.prompt();
+      _deferredInstall.userChoice.then(r => {
+        if (r.outcome === "accepted") showToast("✅ Instalando…", "success");
+        _deferredInstall = null;
+      });
+    }
   </script>
 </body>
 </html>

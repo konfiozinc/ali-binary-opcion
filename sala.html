@@ -297,6 +297,14 @@
     </div>
     <div class="nav-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <div class="nav-user" style="white-space:nowrap">Hola, <span id="user-name">—</span></div>
+      <!-- Botón Notificaciones Push -->
+      <button id="btn-notif" onclick="requestNotifPermission()"
+        style="display:none;padding:6px 12px;border:1px solid rgba(0,212,255,0.3);border-radius:8px;
+               background:rgba(0,212,255,0.1);color:var(--accent);
+               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
+               letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all 0.2s">
+        🔔 ACTIVAR NOTIF
+      </button>
       <!-- Botón Activar Sonido -->
       <button id="btn-audio" onclick="toggleAudio()"
         style="padding:6px 12px;border:1px solid rgba(255,200,0,0.4);border-radius:8px;
@@ -442,6 +450,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
 
   <script src="js/firebase-config.js"></script>
   <script src="js/auth.js"></script>
@@ -450,7 +460,32 @@
   <script src="js/users-controller.js"></script>
   <script src="js/sala-controller.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", initSala);
+    document.addEventListener("DOMContentLoaded", async () => {
+      // Verificar modo mantenimiento antes de cargar la sala
+      const enMantto = await checkMaintenance();
+      if (enMantto) {
+        document.body.innerHTML = `
+          <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
+               background:#070c1a;font-family:'Orbitron',sans-serif;text-align:center;padding:40px">
+            <div>
+              <div style="font-size:60px;margin-bottom:24px">🔧</div>
+              <h1 style="color:#ffc800;font-size:24px;margin-bottom:12px;letter-spacing:2px">MANTENIMIENTO</h1>
+              <p style="color:#7a9ab5;font-size:14px;max-width:360px;line-height:1.6">
+                La plataforma está en mantenimiento.<br>
+                Vuelve en unos minutos.
+              </p>
+              <button onclick="location.reload()" style="margin-top:28px;padding:12px 28px;
+                background:linear-gradient(135deg,#00d4ff,#00ff88);border:none;border-radius:10px;
+                color:#070c1a;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;
+                letter-spacing:2px;cursor:pointer">REINTENTAR</button>
+            </div>
+          </div>`;
+        return;
+      }
+      await initSala();
+      // Iniciar FCM después de que el usuario esté autenticado
+      setTimeout(() => initFCM().catch(()=>{}), 2000);
+    });
     // Service Worker para PWA
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/ali-binary-opcion/sw.js')

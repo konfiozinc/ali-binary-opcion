@@ -2,8 +2,6 @@
 // USERS-CONTROLLER.JS v2.0
 // ============================================================
 
-const SUPER_ADMIN_EMAIL = "damoatrader1015@gmail.com";
-
 async function getAllUsers() {
   const snap = await db.collection("users").orderBy("createdAt","desc").get();
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -28,8 +26,26 @@ async function unblockUser(uid) {
 
 async function deleteUserDoc(uid) {
   const userData = await getUserDoc(uid);
+
+  // Intentar eliminar de Firebase Auth via Cloud Function
+  // Si la función no está desplegada, solo elimina el documento Firestore
+  try {
+    const deleteAuthUser = firebase.functions().httpsCallable("deleteAuthUser");
+    await deleteAuthUser({ uid, email: userData?.email });
+    // La Cloud Function ya hace el audit log y borra Firestore
+    return;
+  } catch (fnErr) {
+    // Cloud Function no disponible — solo borrar Firestore
+    console.warn("Cloud Function no disponible, borrando solo Firestore:", fnErr.message);
+  }
+
+  // Fallback: solo borrar documento Firestore
   await db.collection("users").doc(uid).delete();
-  await writeAuditLog("USER_DELETED", { targetUid: uid, targetEmail: userData?.email });
+  await writeAuditLog("USER_DELETED_FIRESTORE_ONLY", {
+    targetUid: uid,
+    targetEmail: userData?.email,
+    note: "Auth no eliminado — deploy Cloud Function para eliminación completa"
+  });
 }
 
 // ── MULTI-ADMIN ────────────────────────────────────────────

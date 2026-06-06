@@ -19,6 +19,7 @@ async function initSala() {
 
   initAudio();
   initPWA();
+  checkNotifSupport();
   startSignalListener();
   loadSalaStats();
 }
@@ -386,5 +387,48 @@ function showSalaToast(msg, type = "info") {
     c.appendChild(t);
     setTimeout(() => t.classList.add("show"), 10);
     setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 4000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICACIONES PUSH
+// ═══════════════════════════════════════════════════════════
+async function requestNotifPermission() {
+  try {
+    if (!("Notification" in window)) {
+      showSalaToast("Tu navegador no soporta notificaciones", "info");
+      return;
+    }
+    const result = await Notification.requestPermission();
+    if (result === "granted") {
+      await initFCM();
+      showSalaToast("🔔 Notificaciones activadas", "success");
+      const btn = document.getElementById("btn-notif");
+      if (btn) {
+        btn.textContent = "🔔 NOTIF ON";
+        btn.style.color = "#00ff88";
+        btn.style.borderColor = "rgba(0,255,136,0.5)";
+        btn.style.background = "rgba(0,255,136,0.12)";
+      }
+    } else {
+      showSalaToast("Permiso de notificaciones denegado", "info");
+    }
+  } catch(e) {
+    showSalaToast("Error al activar notificaciones", "info");
+  }
+}
+
+// Mostrar/ocultar botón de notificaciones según soporte del navegador
+function checkNotifSupport() {
+  const btn = document.getElementById("btn-notif");
+  if (!btn) return;
+  if ("Notification" in window && Notification.permission !== "denied") {
+    btn.style.display = "inline-flex";
+    if (Notification.permission === "granted") {
+      btn.textContent = "🔔 NOTIF ON";
+      btn.style.color = "#00ff88";
+      btn.style.borderColor = "rgba(0,255,136,0.5)";
+      btn.style.background = "rgba(0,255,136,0.12)";
+    }
   }
 }

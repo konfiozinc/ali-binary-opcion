@@ -36,3 +36,109 @@ async function writeAuditLog(action, details = {}) {
     });
   } catch(e) { console.warn("Audit log error:", e); }
 }
+
+// ── FIREBASE CLOUD MESSAGING (FCM) ──────────────────────────
+// VAPID key pública — obtener en Firebase Console →
+// Project Settings → Cloud Messaging → Web Push certificates
+const FCM_VAPID_KEY = "TU_VAPID_KEY_AQUI"; // ← reemplazar
+
+let fcmMessaging = null;
+
+async function initFCM() {
+  try {
+    // Solo inicializar si el navegador soporta notificaciones
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) return;
+
+    fcmMessaging = firebase.messaging();
+
+    // Solicitar permiso de notificaciones
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") {
+      console.log("FCM: permiso denegado");
+      return;
+    }
+
+    // Obtener token FCM del dispositivo
+    const swReg = await navigator.serviceWorker.ready;
+    const token = await fcmMessaging.getToken({
+      vapidKey: FCM_VAPID_KEY,
+      serviceWorkerRegistration: swReg
+    });
+
+    if (token) {
+      await saveFCMToken(token);
+      console.log("FCM token guardado:", token.substring(0, 20) + "...");
+    }
+
+    // Escuchar mensajes cuando la app está en primer plano
+    fcmMessaging.onMessage(payload => {
+      const { title, body } = payload.notification || {};
+      // Mostrar notificación nativa aunque la app esté abierta
+      if (swReg.showNotification) {
+        swReg.showNotification(title || "📡 Nueva Señal", {
+          body:    body || "Nueva señal disponible",
+          icon:    "./assets/icon-192.png",
+          badge:   "./assets/icon-192.png",
+          vibrate: [300, 100, 300],
+          tag:     "ali-signal",
+          requireInteraction: true,
+          data:    { url: "./sala.html" }
+        });
+      }
+    });
+
+  } catch(e) {
+    console.warn("FCM init error:", e.message);
+  }
+}
+
+// Guardar/actualizar token FCM del usuario en Firestore
+async function saveFCMToken(token) {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await db.collection("users").doc(user.uid).update({
+      fcmToken: token,
+      fcmUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      fcmDevice: navigator.userAgent.substring(0, 80)
+    });
+  } catch(e) {
+    // Si el documento no existe aún, ignorar
+    console.warn("saveFCMToken:", e.message);
+  }
+}
+
+// Obtener todos los tokens FCM activos (para enviar push masivo)
+async function getAllFCMTokens() {
+  const snap = await db.collection("users")
+    .where("activo", "==", true)
+    .get();
+  const tokens = [];
+  snap.forEach(doc => {
+    const t = doc.data().fcmToken;
+    if (t) tokens.push(t);
+  });
+  return tokens;
+}
+
+// ── MODO MANTENIMIENTO ───────────────────────────────────────
+async function checkMaintenance() {
+  try {
+    const snap = await db.collection("settings").doc("app").get();
+    if (snap.exists && snap.data().maintenance === true) {
+      const user = auth.currentUser;
+      // SuperAdmin puede pasar siempre
+      if (user && user.email === "damoatrader1015@gmail.com") return false;
+      return true; // mostrar pantalla de mantenimiento
+    }
+    return false;
+  } catch(e) { return false; }
+}
+
+async function setMaintenance(enabled) {
+  await db.collection("settings").doc("app").set(
+    { maintenance: enabled, updatedAt: firebase.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+  await writeAuditLog("MAINTENANCE_" + (enabled ? "ON" : "OFF"), {});
+}
