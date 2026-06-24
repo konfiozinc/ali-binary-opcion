@@ -387,9 +387,9 @@
     }
 
     // ── RATE LIMITING ─────────────────────────────────────────
-    const MAX_ATTEMPTS = 3;
-    const BLOCK_MS     = 5 * 60 * 1000;
-    const REG_COOLDOWN = 60 * 1000;
+    const MAX_ATTEMPTS = 10;
+    const BLOCK_MS     = 1 * 60 * 1000;
+    const REG_COOLDOWN = 10 * 1000;
 
     function getRateData(key) {
       try { return JSON.parse(localStorage.getItem(key)) || {}; } catch(e) { return {}; }
