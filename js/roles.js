@@ -2,7 +2,7 @@
 // ROLES.JS v2.0 — Multi-admin por Firestore role='admin'
 // ============================================================
 
-const SUPER_ADMIN = "damoatrader1015@gmail.com";
+const SUPER_ADMIN = "damoa1510qtrading@gmail.com";
 
 async function getUserDoc(uid) {
   const snap = await db.collection("users").doc(uid).get();
