@@ -1,3 +1,6 @@
+// Admin email — debe coincidir con SUPER_ADMIN en roles.js
+const ADMIN_EMAIL = "damoatrader1015@gmail.com";
+
 // ============================================================
 // AUTH.JS — Autenticación Firebase
 // ============================================================

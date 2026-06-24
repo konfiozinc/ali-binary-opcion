@@ -176,6 +176,7 @@
     <button class="tab-btn"        data-tab="dashboard" onclick="showTab('dashboard')">🚀 DASHBOARD</button>
     <button class="tab-btn"        data-tab="audit"     onclick="showTab('audit')">🔍 AUDITORÍA</button>
     <button class="tab-btn"        data-tab="bot"       onclick="showTab('bot')">🤖 BOT IQ</button>
+    <button class="tab-btn"        data-tab="metrics"   onclick="showTab('metrics')">📈 MÉTRICAS</button>
   </div>
 
   <main>
@@ -450,6 +451,55 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
           </div>
         </div>
       </div>
+    </div>
+
+
+    <!-- ─── TAB MÉTRICAS ────────────────────────────────── -->
+    <div id="tab-metrics" class="tab-panel">
+
+      <style>
+        .metric-row {
+          display: flex; justify-content: space-between; align-items: center;
+          padding: 8px 0; border-bottom: 1px solid var(--border);
+          font-size: 13px;
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+      </style>
+
+      <div class="metrics-grid">
+        <!-- Usuarios -->
+        <div class="card">
+          <div class="card-title">👥 USUARIOS</div>
+          <div id="metrics-users"><p style="color:var(--muted);font-size:12px">Cargando…</p></div>
+        </div>
+        <!-- Señales -->
+        <div class="card">
+          <div class="card-title">📡 SEÑALES</div>
+          <div id="metrics-signals"><p style="color:var(--muted);font-size:12px">Cargando…</p></div>
+        </div>
+      </div>
+
+      <!-- Gráfica últimas 24h -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-title">📊 SEÑALES ÚLTIMAS 24 HORAS</div>
+        <div id="metrics-chart" style="display:flex;align-items:flex-end;gap:3px;height:80px;padding-top:8px"></div>
+      </div>
+
+      <!-- Actividad reciente -->
+      <div class="card">
+        <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+          🕐 ACTIVIDAD RECIENTE
+          <button onclick="loadMetrics()" style="padding:4px 10px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:6px;color:var(--accent);font-size:10px;cursor:pointer;font-family:Orbitron,sans-serif">🔄 ACTUALIZAR</button>
+        </div>
+        <div id="metrics-activity"><p style="color:var(--muted);font-size:12px">Cargando…</p></div>
+      </div>
+
     </div>
 
   </main>

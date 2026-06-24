@@ -76,3 +76,66 @@ async function receiveBotWebhook(payload) {
   if (payload.secret !== BOT_SECRET) throw new Error("Unauthorized");
   return await createBotSignal(payload);
 }
+
+// ── EXPIRACIÓN AUTOMÁTICA DE SEÑALES ────────────────────────
+// Se ejecuta en background cuando cualquier usuario abre la sala
+// Cierra señales "pending" cuya hora de entrada ya pasó + expiración
+
+function parseEntryTime(entryTime) {
+  // Formato esperado: "HH:MM"
+  if (!entryTime) return null;
+  const parts = entryTime.split(":");
+  if (parts.length < 2) return null;
+  const now = new Date();
+  const target = new Date(
+    now.getFullYear(), now.getMonth(), now.getDate(),
+    parseInt(parts[0], 10), parseInt(parts[1], 10), 0, 0
+  );
+  return target;
+}
+
+async function autoExpireSignals() {
+  try {
+    const snap = await db.collection("signals")
+      .where("status", "==", "pending")
+      .get();
+
+    if (snap.empty) return;
+
+    const now     = Date.now();
+    const batch   = db.batch();
+    let   expired = 0;
+
+    snap.forEach(doc => {
+      const s          = doc.data();
+      const entryDate  = parseEntryTime(s.entryTime);
+      if (!entryDate) return;
+
+      // Calcular minutos de expiración (default 5 min si no hay)
+      const expirationMins = parseInt(s.expiration, 10) || 5;
+      // La señal expira: hora de entrada + expiración + 2 min de gracia
+      const expiresAt = entryDate.getTime() + (expirationMins + 2) * 60 * 1000;
+
+      if (now > expiresAt) {
+        batch.update(doc.ref, {
+          status:    "expired",
+          expiredAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        expired++;
+      }
+    });
+
+    if (expired > 0) {
+      await batch.commit();
+      console.log(`[AutoExpire] ${expired} señal(es) expirada(s) automáticamente`);
+    }
+  } catch(e) {
+    console.warn("[AutoExpire] Error:", e.message);
+  }
+}
+
+// Iniciar verificación periódica cada 2 minutos
+function startAutoExpire() {
+  autoExpireSignals(); // ejecutar inmediatamente
+  setInterval(autoExpireSignals, 2 * 60 * 1000);
+}

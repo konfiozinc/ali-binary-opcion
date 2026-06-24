@@ -340,3 +340,129 @@ function showToast(msg, type = "info") {
     setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 3500);
   }
 }
+
+// ── MÉTRICAS EN TIEMPO REAL ───────────────────────────────
+let unsubMetrics = null;
+
+async function loadMetrics() {
+  renderMetricsSkeleton();
+  await Promise.all([
+    loadUserMetrics(),
+    loadSignalMetrics(),
+    loadRecentActivity()
+  ]);
+  startPresenceListener();
+}
+
+async function loadUserMetrics() {
+  const snap = await db.collection("users").get();
+  const users = snap.docs.map(d => d.data());
+  const total    = users.length;
+  const activos  = users.filter(u => u.activo).length;
+  const bloqueados = users.filter(u => !u.activo).length;
+  const admins   = users.filter(u => u.role === "admin").length;
+  const conFCM   = users.filter(u => u.fcmToken).length;
+
+  const el = document.getElementById("metrics-users");
+  if (!el) return;
+  el.innerHTML = `
+    <div class="metric-row"><span>👥 Total usuarios</span><strong>${total}</strong></div>
+    <div class="metric-row"><span>✅ Activos</span><strong style="color:#00ff88">${activos}</strong></div>
+    <div class="metric-row"><span>🚫 Bloqueados</span><strong style="color:#ff3366">${bloqueados}</strong></div>
+    <div class="metric-row"><span>👑 Admins</span><strong style="color:#00d4ff">${admins}</strong></div>
+    <div class="metric-row"><span>🔔 Con notif. activadas</span><strong style="color:#ffc800">${conFCM}</strong></div>
+  `;
+}
+
+async function loadSignalMetrics() {
+  const snap = await db.collection("signals").get();
+  const signals = snap.docs.map(d => d.data());
+  const total    = signals.length;
+  const pending  = signals.filter(s => s.status === "pending").length;
+  const win      = signals.filter(s => s.status === "win").length;
+  const loss     = signals.filter(s => s.status === "loss").length;
+  const draw     = signals.filter(s => s.status === "draw").length;
+  const expired  = signals.filter(s => s.status === "expired").length;
+  const pct      = (win + loss) > 0 ? Math.round(win / (win + loss) * 100) : 0;
+
+  // Señales por hora (últimas 24h)
+  const now = Date.now();
+  const byHour = Array(24).fill(0);
+  signals.forEach(s => {
+    if (!s.createdAt) return;
+    const ts = s.createdAt.toDate ? s.createdAt.toDate().getTime() : 0;
+    const hoursAgo = Math.floor((now - ts) / 3600000);
+    if (hoursAgo < 24) byHour[23 - hoursAgo]++;
+  });
+
+  const el = document.getElementById("metrics-signals");
+  if (!el) return;
+  el.innerHTML = `
+    <div class="metric-row"><span>📡 Total señales</span><strong>${total}</strong></div>
+    <div class="metric-row"><span>⏳ Pendientes</span><strong style="color:#ffc800">${pending}</strong></div>
+    <div class="metric-row"><span>✅ WIN</span><strong style="color:#00ff88">${win}</strong></div>
+    <div class="metric-row"><span>❌ LOSS</span><strong style="color:#ff3366">${loss}</strong></div>
+    <div class="metric-row"><span>➖ DOJI</span><strong style="color:#aaa">${draw}</strong></div>
+    <div class="metric-row"><span>💨 Expiradas auto</span><strong style="color:#7a9ab5">${expired}</strong></div>
+    <div class="metric-row"><span>🎯 Efectividad</span><strong style="color:#00d4ff;font-size:18px">${pct}%</strong></div>
+  `;
+
+  // Mini gráfica de barras (últimas 24h)
+  const maxVal = Math.max(...byHour, 1);
+  const chartEl = document.getElementById("metrics-chart");
+  if (chartEl) {
+    chartEl.innerHTML = byHour.map((v, i) => {
+      const h = Math.round((v / maxVal) * 100);
+      const label = i % 6 === 0 ? `<div style="font-size:9px;color:var(--muted);margin-top:3px">${23-i}h</div>` : "";
+      return `<div style="display:flex;flex-direction:column;align-items:center;flex:1">
+        <div style="width:100%;background:rgba(0,212,255,0.08);border-radius:3px;height:60px;display:flex;align-items:flex-end">
+          <div style="width:100%;height:${h}%;background:linear-gradient(to top,#00d4ff,#00ff88);border-radius:3px;min-height:${v>0?2:0}px"></div>
+        </div>
+        ${label}
+      </div>`;
+    }).join("");
+  }
+}
+
+async function loadRecentActivity() {
+  const snap = await db.collection("audit_logs")
+    .orderBy("timestamp", "desc").limit(8).get();
+
+  const el = document.getElementById("metrics-activity");
+  if (!el) return;
+
+  if (snap.empty) {
+    el.innerHTML = `<p style="color:var(--muted);font-size:12px">Sin actividad reciente</p>`;
+    return;
+  }
+
+  el.innerHTML = snap.docs.map(d => {
+    const l  = d.data();
+    const ts = l.timestamp ? l.timestamp.toDate().toLocaleString("es-CO",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}) : "—";
+    const icons = {
+      SIGNAL_CREATED: "📡", SIGNAL_RESULT: "🏁", SIGNAL_DELETED: "🗑️",
+      BOT_SIGNAL_CREATED: "🤖", MAINTENANCE_ON: "🔴", MAINTENANCE_OFF: "🟢",
+      USER_BLOCKED: "🚫", USER_UNBLOCKED: "✅"
+    };
+    const icon = icons[l.action] || "📋";
+    return `<div class="metric-row">
+      <span>${icon} <span style="color:var(--accent);font-size:11px">${l.action}</span></span>
+      <span style="font-size:11px;color:var(--muted)">${ts}</span>
+    </div>`;
+  }).join("");
+}
+
+function startPresenceListener() {
+  if (unsubMetrics) unsubMetrics();
+  // Escuchar cambios en usuarios en tiempo real
+  unsubMetrics = db.collection("users").onSnapshot(() => {
+    loadUserMetrics();
+  });
+}
+
+function renderMetricsSkeleton() {
+  ["metrics-users","metrics-signals","metrics-activity"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `<p style="color:var(--muted);font-size:12px">Cargando…</p>`;
+  });
+}

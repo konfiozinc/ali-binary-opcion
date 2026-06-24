@@ -40,7 +40,7 @@ async function writeAuditLog(action, details = {}) {
 // ── FIREBASE CLOUD MESSAGING (FCM) ──────────────────────────
 // VAPID key pública — obtener en Firebase Console →
 // Project Settings → Cloud Messaging → Web Push certificates
-const FCM_VAPID_KEY = "TU_VAPID_KEY_AQUI"; // ← reemplazar
+const FCM_VAPID_KEY = "BO_mr50_zPwYIOL4XMZYg93PDB0OuXMpnIXb999_94143Hj7WcfJewNXxXz6GOYlCHj9MqnyO90dlOpjsaKG5As"; // ← reemplazar
 
 let fcmMessaging = null;
 

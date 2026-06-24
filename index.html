@@ -386,26 +386,69 @@
       document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
     }
 
+    // ── RATE LIMITING ─────────────────────────────────────────
+    const MAX_ATTEMPTS = 3;
+    const BLOCK_MS     = 5 * 60 * 1000;
+    const REG_COOLDOWN = 60 * 1000;
+
+    function getRateData(key) {
+      try { return JSON.parse(localStorage.getItem(key)) || {}; } catch(e) { return {}; }
+    }
+    function setRateData(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+    function checkLoginBlock() {
+      const d = getRateData("login_rate");
+      if (d.blockedUntil && Date.now() < d.blockedUntil) {
+        const mins = Math.ceil((d.blockedUntil - Date.now()) / 60000);
+        return "Demasiados intentos fallidos. Espera " + mins + " minuto" + (mins > 1 ? "s" : "") + ".";
+      }
+      return null;
+    }
+    function registerLoginFail() {
+      const d = getRateData("login_rate");
+      d.attempts = (d.attempts || 0) + 1;
+      if (d.attempts >= MAX_ATTEMPTS) { d.blockedUntil = Date.now() + BLOCK_MS; d.attempts = 0; }
+      setRateData("login_rate", d);
+    }
+    function clearLoginFails() { localStorage.removeItem("login_rate"); }
+
+    function checkRegisterCooldown() {
+      const d = getRateData("reg_rate");
+      if (d.lastReg && Date.now() - d.lastReg < REG_COOLDOWN) {
+        const secs = Math.ceil((REG_COOLDOWN - (Date.now() - d.lastReg)) / 1000);
+        return "Espera " + secs + " segundos antes de crear otra cuenta.";
+      }
+      return null;
+    }
+    function registerRegAttempt() { setRateData("reg_rate", { lastReg: Date.now() }); }
+    // ──────────────────────────────────────────────────────────
+
     async function doLogin() {
       const btn   = document.getElementById("btn-login");
       const email = document.getElementById("login-email").value.trim();
       const pass  = document.getElementById("login-pass").value;
       const errEl = document.getElementById("login-error");
       const sucEl = document.getElementById("login-success");
-
-      errEl.style.display = "none";
-      sucEl.style.display = "none";
+      errEl.style.display = "none"; sucEl.style.display = "none";
 
       if (!email || !pass) { errEl.textContent = "Completa todos los campos."; errEl.style.display = "block"; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "Email invalido."; errEl.style.display = "block"; return; }
+
+      const block = checkLoginBlock();
+      if (block) { errEl.textContent = block; errEl.style.display = "block"; return; }
 
       btn.disabled = true; btn.textContent = "VERIFICANDO…";
       const res = await loginUser(email, pass);
       if (res.success) {
-        sucEl.textContent = "✅ Autenticado. Redirigiendo…";
+        clearLoginFails();
+        sucEl.textContent = "Autenticado. Redirigiendo…";
         sucEl.style.display = "block";
         await redirectByRole(res.user);
       } else {
-        errEl.textContent = res.error;
+        registerLoginFail();
+        const d = getRateData("login_rate");
+        const rem = MAX_ATTEMPTS - (d.attempts || 0);
+        errEl.textContent = res.error + (rem > 0 ? " (" + rem + " intento" + (rem > 1 ? "s" : "") + " restante" + (rem > 1 ? "s" : "") + ")" : "");
         errEl.style.display = "block";
         btn.disabled = false; btn.textContent = "ENTRAR";
       }
@@ -418,16 +461,21 @@
       const pass   = document.getElementById("reg-pass").value;
       const errEl  = document.getElementById("reg-error");
       const sucEl  = document.getElementById("reg-success");
-
-      errEl.style.display = "none";
-      sucEl.style.display = "none";
+      errEl.style.display = "none"; sucEl.style.display = "none";
 
       if (!nombre || !email || !pass) { errEl.textContent = "Completa todos los campos."; errEl.style.display = "block"; return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "Email invalido."; errEl.style.display = "block"; return; }
+      if (pass.length < 6) { errEl.textContent = "La contrasena debe tener al menos 6 caracteres."; errEl.style.display = "block"; return; }
+      if (nombre.length < 2) { errEl.textContent = "Ingresa tu nombre completo."; errEl.style.display = "block"; return; }
+
+      const cooldown = checkRegisterCooldown();
+      if (cooldown) { errEl.textContent = cooldown; errEl.style.display = "block"; return; }
 
       btn.disabled = true; btn.textContent = "CREANDO…";
+      registerRegAttempt();
       const res = await registerUser(email, pass, nombre);
       if (res.success) {
-        sucEl.textContent = "✅ Cuenta creada. Accediendo…";
+        sucEl.textContent = "Cuenta creada. Accediendo…";
         sucEl.style.display = "block";
         await redirectByRole(res.user);
       } else {
