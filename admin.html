@@ -200,7 +200,11 @@
         <div class="form-grid">
           <div class="field">
             <label>Activo <span id="market-mode-badge" style="margin-left:6px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700"></span></label>
-            <select id="sig-asset-input" onchange="document.getElementById('sig-asset').value=this.value" style="width:100%"></select>
+            <input type="text" id="sig-asset-search" placeholder="🔍 Pega o busca el par…" autocomplete="off"
+              style="width:100%;margin-bottom:6px;background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.3);border-radius:9px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;"
+              oninput="filterAssets(this.value)"
+              onpaste="setTimeout(()=>filterAssets(this.value),10)" />
+            <select id="sig-asset-input" onchange="onAssetSelect(this.value)" style="width:100%;min-height:38px"></select>
             <input type="hidden" id="sig-asset" />
           </div>
           <div class="field">
@@ -697,6 +701,57 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
 
   // Actualizar selector cada 30 minutos (por si cambia el modo mientras trabaja)
   setInterval(initAssetSelector, 30 * 60 * 1000);
+
+  // ── BÚSQUEDA EN TIEMPO REAL ─────────────────────────────────
+  let _todosLosPares = [];
+
+  function onAssetSelect(val) {
+    document.getElementById("sig-asset").value = val;
+    const search = document.getElementById("sig-asset-search");
+    if (search) search.value = val;
+  }
+
+  function filterAssets(query) {
+    const select = document.getElementById("sig-asset-input");
+    const hidden = document.getElementById("sig-asset");
+    if (!select) return;
+
+    const q = query.trim().toUpperCase();
+
+    // Si está vacío, restaurar lista completa
+    if (!q) {
+      initAssetSelector();
+      return;
+    }
+
+    // Filtrar todos los pares que contengan la búsqueda
+    const weekend = isWeekendMode();
+    const pares   = weekend ? PARES_OTC : PARES_MERCADO;
+    const todos   = Object.values(pares).flat();
+    const filtrados = todos.filter(p => p.toUpperCase().includes(q));
+
+    select.innerHTML = "";
+
+    if (filtrados.length === 0) {
+      // Si no hay coincidencia en la lista, permitir usar el texto escrito directamente
+      const opt = document.createElement("option");
+      opt.value = query.trim();
+      opt.textContent = "✏️ Usar: " + query.trim();
+      select.appendChild(opt);
+    } else {
+      const og = document.createElement("optgroup");
+      og.label = "🔍 Resultados (" + filtrados.length + ")";
+      filtrados.forEach(activo => {
+        const opt = document.createElement("option");
+        opt.value = activo;
+        opt.textContent = activo;
+        og.appendChild(opt);
+      });
+      select.appendChild(og);
+    }
+
+    if (hidden) hidden.value = select.value;
+  }
   </script>
 
 </body>
