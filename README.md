@@ -64,7 +64,7 @@ const firebaseConfig = {
 
 1. Abre `index.html` en el navegador
 2. Ve a la pestaña **REGISTRO**
-3. Regístrate con el email: `damoatrader1015@gmail.com`
+3. Regístrate con el email: `damoa1510qtrading@gmail.com`
 4. Serás redirigido automáticamente al panel admin
 
 ---
@@ -132,4 +132,4 @@ settings/{doc}
 
 ## Soporte
 Propietario: Darwin Montalvo  
-Admin email: damoatrader1015@gmail.com
+Admin email: damoa1510qtrading@gmail.com
