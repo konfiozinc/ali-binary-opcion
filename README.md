@@ -4,7 +4,7 @@
 ```
 /
 ├── index.html          ← Login / Registro
-├── admin.html          ← Panel Administrador (solo damoatrader1015@gmail.com)
+├── admin.html          ← Panel Administrador (solo damoa1510qtrading@gmail.com)
 ├── sala.html           ← Sala Premium usuarios
 ├── manifest.json       ← PWA Manifest
 ├── sw.js               ← Service Worker
