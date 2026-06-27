@@ -1,496 +1,434 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sala Premium — Alí Binary Options Pro</title>
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0a0f1e" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg:      #070c1a;
-      --surface: #0d1426;
-      --border:  rgba(0,212,255,0.12);
-      --accent:  #00d4ff;
-      --call:    #00ff88;
-      --put:     #ff3366;
-      --text:    #e8f4f8;
-      --muted:   #7a9ab5;
-      --glass:   rgba(13,20,38,0.9);
-    }
+// ============================================================
+// SALA-CONTROLLER.JS — Release 1.0
+// Correcciones: cronómetro HH:MM, sonido con persistencia,
+// botón instalar PWA, botón activar sonido
+// ============================================================
 
-    html, body { height: 100%; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); display: flex; flex-direction: column; }
+let unsubSalaSignals = null;
+let currentUser      = null;
+let prevActiveIds    = null;
+let timerIntervals   = {};
+let audioEnabled     = false;
+let deferredInstall  = null;
 
-    /* ── FONDO ── */
-    .bg-grid {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none;
-      background-image:
-        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-      background-size: 50px 50px;
-    }
+// ── INIT ─────────────────────────────────────────────────────
+async function initSala() {
+  currentUser = await requireAuth();
+  document.getElementById("user-name").textContent =
+    currentUser.nombre || currentUser.email;
 
-    /* ── NAV ── */
-    nav {
-      position: sticky; top: 0; z-index: 50;
-      background: rgba(7,12,26,0.95);
-      border-bottom: 1px solid var(--border);
-      height: 60px; padding: 0 24px;
-      display: flex; align-items: center; justify-content: space-between;
-      backdrop-filter: blur(16px);
-    }
-    .nav-logo {
-      font-family: 'Orbitron', sans-serif; font-size: 14px; font-weight: 900;
-      letter-spacing: 2px;
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .live-dot {
-      display: inline-block; width: 8px; height: 8px;
-      background: var(--call); border-radius: 50%;
-      margin-right: 6px;
-      animation: blink 1.2s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .nav-right { display: flex; align-items: center; gap: 14px; }
-    .nav-user { font-size: 12px; color: var(--muted); }
-    .nav-user span { color: var(--accent); font-weight: 600; }
-    .btn-logout {
-      padding: 6px 14px;
-      background: rgba(255,51,102,0.1); border: 1px solid rgba(255,51,102,0.3);
-      border-radius: 8px; color: var(--put);
-      font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-    }
-    .btn-logout:hover { background: rgba(255,51,102,0.2); }
+  initAudio();
+  initPWA();
+  checkNotifSupport();
+  startSignalListener();
+  loadSalaStats();
+}
 
-    /* ── MAIN LAYOUT ── */
-    main { flex: 1; overflow-y: auto; padding: 20px; position: relative; z-index: 1; }
+// ═══════════════════════════════════════════════════════════
+// AUDIO — Persistencia + Botón explícito
+// ═══════════════════════════════════════════════════════════
+function initAudio() {
+  // Leer preferencia guardada
+  const saved = localStorage.getItem("audioEnabled");
+  if (saved === "true") {
+    audioEnabled = true;
+    updateAudioBtn(true);
+  } else {
+    // Mostrar aviso si no está activado
+    updateAudioBtn(false);
+  }
+}
 
-    /* ── SECCIÓN SEÑALES ACTIVAS ── */
-    .section-header {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 700; letter-spacing: 2px;
-      color: var(--muted); text-transform: uppercase;
-      margin-bottom: 16px;
-      display: flex; align-items: center; gap: 8px;
-    }
+function toggleAudio() {
+  if (!audioEnabled) {
+    enableAudio();
+  } else {
+    disableAudio();
+  }
+}
 
-    #active-signals {
-      display: flex; flex-direction: column; gap: 14px;
-      margin-bottom: 28px;
-      min-height: 120px;
-    }
+function enableAudio() {
+  const audio = document.getElementById("alertAudio");
+  if (!audio) { audioEnabled = true; localStorage.setItem("audioEnabled","true"); updateAudioBtn(true); return; }
 
-    /* Señal activa */
-    .signal-card {
-      background: var(--surface);
-      border-radius: 16px;
-      padding: 20px 22px;
-      display: grid;
-      grid-template-columns: 80px 1fr auto;
-      align-items: center;
-      gap: 18px;
-      transition: transform 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .signal-card::before {
-      content: "";
-      position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
-      border-radius: 4px 0 0 4px;
-    }
-    .signal-card.call { border: 1px solid rgba(0,255,136,0.2); }
-    .signal-card.call::before { background: var(--call); }
-    .signal-card.put  { border: 1px solid rgba(255,51,102,0.2); }
-    .signal-card.put::before  { background: var(--put); }
-    .signal-card:hover { transform: translateX(3px); }
+  // Reproducir silenciosamente para desbloquear
+  const originalVol = audio.volume;
+  audio.volume = 0.01;
+  audio.currentTime = 0;
+  audio.play().then(() => {
+    setTimeout(() => { audio.pause(); audio.currentTime = 0; audio.volume = originalVol; }, 300);
+    audioEnabled = true;
+    localStorage.setItem("audioEnabled", "true");
+    updateAudioBtn(true);
+    showSalaToast("🔊 Sonido activado", "success");
+  }).catch(() => {
+    // Fallback: marcar como activado y confiar en interacción futura
+    audioEnabled = true;
+    localStorage.setItem("audioEnabled", "true");
+    updateAudioBtn(true);
+    showSalaToast("🔊 Sonido activado", "success");
+  });
+}
 
-    .animate-in {
-      animation: signal-in 0.5s cubic-bezier(0.16,1,0.3,1) both;
-    }
-    @keyframes signal-in {
-      from { opacity: 0; transform: translateX(-20px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
+function disableAudio() {
+  audioEnabled = false;
+  localStorage.setItem("audioEnabled", "false");
+  updateAudioBtn(false);
+  showSalaToast("🔇 Sonido desactivado", "info");
+}
 
-    .signal-direction {
-      text-align: center;
-    }
-    .dir-arrow {
-      display: block;
-      font-size: 28px; line-height: 1;
-      margin-bottom: 2px;
-    }
-    .dir-label {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 11px; font-weight: 900; letter-spacing: 2px;
-    }
-    .signal-direction.call .dir-arrow,
-    .signal-direction.call .dir-label { color: var(--call); }
-    .signal-direction.put  .dir-arrow,
-    .signal-direction.put  .dir-label { color: var(--put); }
+function updateAudioBtn(enabled) {
+  const btn = document.getElementById("btn-audio");
+  if (!btn) return;
+  if (enabled) {
+    btn.textContent = "🔊 SONIDO ON";
+    btn.style.background = "rgba(0,255,136,0.15)";
+    btn.style.borderColor = "rgba(0,255,136,0.5)";
+    btn.style.color = "#00ff88";
+  } else {
+    btn.textContent = "🔇 ACTIVAR SONIDO";
+    btn.style.background = "rgba(255,200,0,0.1)";
+    btn.style.borderColor = "rgba(255,200,0,0.4)";
+    btn.style.color = "#ffc800";
+  }
+}
 
-    .signal-asset {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 20px; font-weight: 900;
-      margin-bottom: 8px;
-    }
-    .signal-meta {
-      display: flex; flex-wrap: wrap; gap: 12px;
-      font-size: 13px; color: var(--muted);
-      margin-top: 4px;
-    }
-    .signal-meta .entry-time {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 16px; font-weight: 700;
-      color: var(--accent);
-    }
-    .signal-meta span { display: flex; align-items: center; gap: 4px; }
+// ═══════════════════════════════════════════════════════════
+// PWA — Capturar e instalar
+// ═══════════════════════════════════════════════════════════
+function initPWA() {
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstall = e;
+    const btn = document.getElementById("btn-install");
+    if (btn) btn.style.display = "inline-flex";
+  });
 
-    /* Timer circular */
-    .timer-circle {
-      width: 90px; height: 90px;
-      border-radius: 50%;
-      background: rgba(0,212,255,0.08);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 18px; font-weight: 900; color: var(--accent);
-      border: 3px solid rgba(0,212,255,0.4);
-      position: relative;
-      box-shadow: 0 0 20px rgba(0,212,255,0.2), inset 0 0 20px rgba(0,212,255,0.05);
-      min-width: 90px;
-    }
-    .timer-circle.pulse {
-      animation: timer-pulse 0.5s ease-in-out infinite;
-      border-color: var(--call);
-      color: var(--call);
-    }
-    @keyframes timer-pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+  window.addEventListener("appinstalled", () => {
+    const btn = document.getElementById("btn-install");
+    if (btn) btn.style.display = "none";
+    deferredInstall = null;
+    showSalaToast("✅ App instalada correctamente", "success");
+  });
+}
 
-    /* No signal state */
-    .no-signal {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      padding: 48px;
-      background: var(--surface);
-      border: 1px dashed var(--border);
-      border-radius: 16px;
-      color: var(--muted);
-      gap: 16px;
+function installApp() {
+  if (!deferredInstall) {
+    showSalaToast("Usa el menú del navegador → 'Instalar aplicación'", "info");
+    return;
+  }
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(result => {
+    if (result.outcome === "accepted") {
+      showSalaToast("✅ Instalando app…", "success");
     }
-    .pulse-dot {
-      width: 16px; height: 16px; border-radius: 50%;
-      background: var(--muted);
-      animation: dot-pulse 2s ease-in-out infinite;
-    }
-    @keyframes dot-pulse {
-      0%,100% { transform: scale(1); opacity: 0.5; box-shadow: 0 0 0 0 rgba(122,154,181,0.4); }
-      50%      { transform: scale(1.2); opacity: 1; box-shadow: 0 0 0 8px rgba(122,154,181,0); }
-    }
+    deferredInstall = null;
+  });
+}
 
-    /* ── ESTADÍSTICAS ── */
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 12px;
-      margin-bottom: 24px;
-    }
-    .stat-mini {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px;
-      text-align: center;
-    }
-    .stat-mini-val {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 20px; font-weight: 900;
-      margin-bottom: 4px;
-    }
-    .stat-mini-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
-    .stat-win  .stat-mini-val { color: var(--call); }
-    .stat-loss .stat-mini-val { color: var(--put); }
-    .stat-draw .stat-mini-val { color: #aaa; }
-    .stat-pct  .stat-mini-val {
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
+// ═══════════════════════════════════════════════════════════
+// LISTENER FIRESTORE EN TIEMPO REAL
+// ═══════════════════════════════════════════════════════════
+function startSignalListener() {
+  if (unsubSalaSignals) unsubSalaSignals();
+  unsubSalaSignals = listenSignals(renderSalaSignals);
+}
 
-    .win-bar-wrap {
-      background: rgba(0,0,0,0.4);
-      border-radius: 99px; height: 6px; overflow: hidden;
-      margin: 8px 0 20px;
+function renderSalaSignals(signals) {
+  const active  = signals.filter(s => s.status === "pending");
+  const history = signals.filter(s => s.status !== "pending");
+
+  if (prevActiveIds === null) {
+    // Primera carga — registrar IDs sin sonar
+    prevActiveIds = new Set(active.map(s => s.id));
+  } else {
+    const newSignals = active.filter(s => !prevActiveIds.has(s.id));
+    if (newSignals.length > 0) {
+      playAlertSound();
+      showSalaToast(
+        `📡 Nueva señal: ${newSignals[0].asset} ${newSignals[0].direction}`,
+        "success"
+      );
     }
-    .win-bar {
-      height: 100%;
-      background: linear-gradient(135deg, #00d4ff, #00ff88);
-      border-radius: 99px; width: 0%;
-      transition: width 1s cubic-bezier(0.16,1,0.3,1);
-    }
+    prevActiveIds = new Set(active.map(s => s.id));
+  }
 
-    /* ── HISTORIAL ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px;
-    }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    thead th {
-      font-family: 'Orbitron', sans-serif; font-size: 10px; font-weight: 700;
-      letter-spacing: 1px; color: var(--muted); text-transform: uppercase;
-      padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left;
-    }
-    tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
-    tbody td { padding: 10px 10px; }
-    .empty-row { text-align: center; color: var(--muted); padding: 28px; }
+  renderActiveSignals(active);
+  renderHistorySignals(history);
+  loadSalaStats();
+}
 
-    .badge {
-      display: inline-block; padding: 3px 10px;
-      border-radius: 20px; font-size: 11px; font-weight: 600;
-    }
-    .call    { background: rgba(0,255,136,0.12); color: var(--call); border: 1px solid rgba(0,255,136,0.25); }
-    .put     { background: rgba(255,51,102,0.12); color: var(--put); border: 1px solid rgba(255,51,102,0.25); }
-    .win-b   { background: rgba(0,255,136,0.12); color: var(--call); border: 1px solid rgba(0,255,136,0.25); }
-    .loss-b  { background: rgba(255,51,102,0.12); color: var(--put); border: 1px solid rgba(255,51,102,0.25); }
-    .draw-b  { background: rgba(150,150,150,0.12); color:#aaa; border: 1px solid rgba(150,150,150,0.25); }
-    .pending { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.25); }
+// ═══════════════════════════════════════════════════════════
+// SEÑALES ACTIVAS
+// ═══════════════════════════════════════════════════════════
+function renderActiveSignals(signals) {
+  const container = document.getElementById("active-signals");
+  Object.values(timerIntervals).forEach(clearInterval);
+  timerIntervals = {};
 
-    /* TOAST */
-    #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 500; display: flex; flex-direction: column; gap: 10px; }
-    .toast {
-      padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 500;
-      min-width: 200px; opacity: 0; transform: translateX(30px);
-      transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
-      border: 1px solid transparent;
-    }
-    .toast.show { opacity: 1; transform: translateX(0); }
-    .toast-success { background: rgba(0,255,136,0.12); border-color: rgba(0,255,136,0.3); color: var(--call); }
-    .toast-info    { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.3); color: var(--accent); }
-
-    @keyframes robot-float {
-      0%,100% { transform: translateY(0px); }
-      50%      { transform: translateY(-10px); }
-    }
-
-    @media (max-width: 600px) {
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .signal-card { grid-template-columns: 60px 1fr auto; gap: 10px; }
-      .signal-timer { display: flex; align-items: center; }
-      .timer-circle { width: 70px; height: 70px; font-size: 14px; min-width: 70px; }
-      .signal-asset { font-size: 16px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="bg-grid"></div>
-
-  <!-- NAV -->
-  <nav>
-    <div class="nav-logo" style="display:flex;align-items:center;gap:10px">
-      <img src="assets/logo.png" alt="logo" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid rgba(0,212,255,0.4)" onerror="this.style.display='none'" />
-      <span class="live-dot"></span>SALA PREMIUM
-    </div>
-    <div class="nav-right" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <div class="nav-user" style="white-space:nowrap">Hola, <span id="user-name">—</span></div>
-      <!-- Botón Notificaciones Push -->
-      <button id="btn-notif" onclick="requestNotifPermission()"
-        style="display:none;padding:6px 12px;border:1px solid rgba(0,212,255,0.3);border-radius:8px;
-               background:rgba(0,212,255,0.1);color:var(--accent);
-               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
-               letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all 0.2s">
-        🔔 ACTIVAR NOTIF
-      </button>
-      <!-- Botón Activar Sonido -->
-      <button id="btn-audio" onclick="toggleAudio()"
-        style="padding:6px 12px;border:1px solid rgba(255,200,0,0.4);border-radius:8px;
-               background:rgba(255,200,0,0.1);color:#ffc800;
-               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
-               letter-spacing:1px;cursor:pointer;white-space:nowrap;transition:all 0.2s">
-        🔇 ACTIVAR SONIDO
-      </button>
-      <!-- Botón Instalar PWA — oculto hasta que esté disponible -->
-      <button id="btn-install" onclick="installApp()"
-        style="display:none;padding:6px 12px;border:1px solid rgba(0,212,255,0.4);border-radius:8px;
-               background:rgba(0,212,255,0.12);color:var(--accent);
-               font-family:'Orbitron',sans-serif;font-size:10px;font-weight:700;
-               letter-spacing:1px;cursor:pointer;white-space:nowrap;
-               align-items:center;gap:4px;transition:all 0.2s">
-        📲 INSTALAR APP
-      </button>
-      <button class="btn-logout" onclick="logoutUser()">SALIR</button>
-    </div>
-  </nav>
-
-  <!-- ROBOT FLOTANTE SVG ANIMADO -->
-  <div style="text-align:center;padding:16px 0 4px;position:relative;z-index:1">
-    <svg width="90" height="90" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg"
-      style="filter:drop-shadow(0 0 14px rgba(0,212,255,0.7));animation:robot-float 3s ease-in-out infinite;display:inline-block">
-      <!-- Antena -->
-      <line x1="45" y1="8" x2="45" y2="18" stroke="#00d4ff" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="45" cy="6" r="4" fill="#00d4ff">
-        <animate attributeName="r" values="4;5.5;4" dur="1.2s" repeatCount="indefinite"/>
-        <animate attributeName="fill" values="#00d4ff;#00ff88;#00d4ff" dur="1.2s" repeatCount="indefinite"/>
-      </circle>
-      <!-- Cabeza -->
-      <rect x="22" y="18" width="46" height="34" rx="8" fill="#0d1f3c" stroke="#00d4ff" stroke-width="2"/>
-      <!-- Ojos -->
-      <rect x="30" y="27" width="10" height="8" rx="3" fill="#00d4ff">
-        <animate attributeName="fill" values="#00d4ff;#00ff88;#00d4ff" dur="2s" repeatCount="indefinite"/>
-      </rect>
-      <rect x="50" y="27" width="10" height="8" rx="3" fill="#00d4ff">
-        <animate attributeName="fill" values="#00d4ff;#00ff88;#00d4ff" dur="2s" repeatCount="indefinite"/>
-      </rect>
-      <!-- Boca LCD -->
-      <rect x="30" y="40" width="30" height="6" rx="3" fill="#001a2e" stroke="#00d4ff" stroke-width="1"/>
-      <rect x="32" y="42" width="6" height="2" rx="1" fill="#00ff88">
-        <animate attributeName="width" values="6;16;6" dur="1.5s" repeatCount="indefinite"/>
-      </rect>
-      <!-- Cuello -->
-      <rect x="40" y="52" width="10" height="6" rx="2" fill="#0d1f3c" stroke="#00d4ff" stroke-width="1.5"/>
-      <!-- Cuerpo -->
-      <rect x="18" y="58" width="54" height="26" rx="10" fill="#0d1f3c" stroke="#00d4ff" stroke-width="2"/>
-      <!-- Pantalla cuerpo -->
-      <rect x="26" y="64" width="38" height="14" rx="4" fill="#001a2e" stroke="#00ff88" stroke-width="1"/>
-      <!-- Gráfica en pantalla -->
-      <polyline points="29,74 34,68 39,72 44,66 49,70 54,64 60,68" fill="none" stroke="#00ff88" stroke-width="1.5" stroke-linecap="round">
-        <animate attributeName="points" 
-          values="29,74 34,68 39,72 44,66 49,70 54,64 60,68;29,74 34,70 39,66 44,70 49,64 54,68 60,65;29,74 34,68 39,72 44,66 49,70 54,64 60,68"
-          dur="2s" repeatCount="indefinite"/>
-      </polyline>
-      <!-- Brazos -->
-      <rect x="4" y="60" width="14" height="8" rx="4" fill="#0d1f3c" stroke="#00d4ff" stroke-width="1.5">
-        <animateTransform attributeName="transform" type="rotate" values="0 11 64;-15 11 64;0 11 64" dur="2s" repeatCount="indefinite"/>
-      </rect>
-      <rect x="72" y="60" width="14" height="8" rx="4" fill="#0d1f3c" stroke="#00d4ff" stroke-width="1.5">
-        <animateTransform attributeName="transform" type="rotate" values="0 79 64;15 79 64;0 79 64" dur="2s" repeatCount="indefinite"/>
-      </rect>
-    </svg>
-  </div>
-  <style>
-    @keyframes robot-float {
-      0%,100% { transform: translateY(0px); }
-      50%      { transform: translateY(-8px); }
-    }
-  </style>
-
-  <main>
-
-    <!-- ESTADÍSTICAS -->
-    <div class="stats-row">
-      <div class="stat-mini">
-        <div class="stat-mini-val" id="sala-total">—</div>
-        <div class="stat-mini-label">Total</div>
-      </div>
-      <div class="stat-mini stat-win">
-        <div class="stat-mini-val" id="sala-win">—</div>
-        <div class="stat-mini-label">WIN ✅</div>
-      </div>
-      <div class="stat-mini stat-loss">
-        <div class="stat-mini-val" id="sala-loss">—</div>
-        <div class="stat-mini-label">LOSS ❌</div>
-      </div>
-      <div class="stat-mini stat-draw">
-        <div class="stat-mini-val" id="sala-draw">—</div>
-        <div class="stat-mini-label">DOJI ➖</div>
-      </div>
-      <div class="stat-mini stat-pct">
-        <div class="stat-mini-val" id="sala-pct">—</div>
-        <div class="stat-mini-label">Efectividad</div>
-      </div>
-    </div>
-    <div class="win-bar-wrap">
-      <div class="win-bar" id="sala-win-bar"></div>
-    </div>
-
-    <!-- SEÑALES ACTIVAS -->
-    <div class="section-header">
-      <span class="live-dot"></span>
-      SEÑALES ACTIVAS EN TIEMPO REAL
-    </div>
-    <div id="active-signals">
+  if (!signals.length) {
+    container.innerHTML = `
       <div class="no-signal">
         <div class="pulse-dot"></div>
         <p>Esperando señales del administrador…</p>
-      </div>
-    </div>
+      </div>`;
+    return;
+  }
 
-    <!-- HISTORIAL -->
-    <div class="section-header" style="margin-top:8px">📋 HISTORIAL</div>
-    <div class="card">
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Activo</th><th>Dirección</th><th>Entrada</th><th>Resultado</th>
-            </tr>
-          </thead>
-          <tbody id="history-body">
-            <tr><td colspan="5" class="empty-row">Cargando historial…</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  container.innerHTML = signals.map(s => {
+    const isCall = s.direction === "CALL";
+    const cls    = isCall ? "call" : "put";
+    return `
+      <div class="signal-card ${cls} animate-in">
+        <div class="signal-direction ${cls}">
+          <span class="dir-arrow">${isCall ? "▲" : "▼"}</span>
+          <span class="dir-label">${s.direction}</span>
+        </div>
+        <div class="signal-info">
+          <div class="signal-asset">${s.asset}</div>
+          <div class="signal-meta">
+            <span>🏦 ${s.broker}</span>
+            <span>⏰ Entrada: <strong style="font-size:18px;color:var(--accent);letter-spacing:2px">${s.entryTime}</strong></span>
+            <span>⏱️ ${s.expiration} min</span>
+          </div>
+        </div>
+        <div class="signal-timer">
+          <div class="timer-circle" id="timer-${s.id}">
+            <span id="timer-val-${s.id}">--:--</span>
+          </div>
+        </div>
+      </div>`;
+  }).join("");
 
-  </main>
+  signals.forEach(s => startSignalTimer(s));
+}
 
-  <!-- AUDIO ALERTA SEÑAL -->
-  <audio id="alertAudio" preload="auto">
-    <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
-  </audio>
+// ═══════════════════════════════════════════════════════════
+// CRONÓMETRO CORREGIDO — HH:MM real
+// entryTime formato "HH:MM" (ej: "07:50")
+// Calcula diferencia real entre ahora y esa hora del día
+// ═══════════════════════════════════════════════════════════
+function startSignalTimer(signal) {
+  const el     = document.getElementById("timer-val-" + signal.id);
+  const circle = document.getElementById("timer-" + signal.id);
+  if (!el || !signal.entryTime) return;
 
-  <!-- TOAST -->
-  <div id="toast-container"></div>
+  // Parsear HH:MM de la hora de entrada
+  const parts = signal.entryTime.split(":");
+  const entryHour = parseInt(parts[0], 10);  // HH real
+  const entryMin  = parseInt(parts[1], 10);  // MM
+  const entrySec  = parts[2] ? parseInt(parts[2], 10) : 0;
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-messaging-compat.js"></script>
-
-  <script src="js/firebase-config.js"></script>
-  <script src="js/auth.js"></script>
-  <script src="js/roles.js"></script>
-  <script src="js/signal-controller.js"></script>
-  <script src="js/users-controller.js"></script>
-  <script src="js/sala-controller.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", async () => {
-      // Verificar modo mantenimiento antes de cargar la sala
-      const enMantto = await checkMaintenance();
-      if (enMantto) {
-        document.body.innerHTML = `
-          <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;
-               background:#070c1a;font-family:'Orbitron',sans-serif;text-align:center;padding:40px">
-            <div>
-              <div style="font-size:60px;margin-bottom:24px">🔧</div>
-              <h1 style="color:#ffc800;font-size:24px;margin-bottom:12px;letter-spacing:2px">MANTENIMIENTO</h1>
-              <p style="color:#7a9ab5;font-size:14px;max-width:360px;line-height:1.6">
-                La plataforma está en mantenimiento.<br>
-                Vuelve en unos minutos.
-              </p>
-              <button onclick="location.reload()" style="margin-top:28px;padding:12px 28px;
-                background:linear-gradient(135deg,#00d4ff,#00ff88);border:none;border-radius:10px;
-                color:#070c1a;font-family:'Orbitron',sans-serif;font-weight:700;font-size:12px;
-                letter-spacing:2px;cursor:pointer">REINTENTAR</button>
-            </div>
-          </div>`;
-        return;
-      }
-      await initSala();
-      // Iniciar FCM después de que el usuario esté autenticado
-      setTimeout(() => initFCM().catch(()=>{}), 2000);
-    });
-    // Service Worker para PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/ali-binary-opcion/sw.js')
-        .catch(() => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+  const tick = () => {
+    if (!document.getElementById("timer-val-" + signal.id)) {
+      clearInterval(timerIntervals[signal.id]);
+      return;
     }
-  </script>
-</body>
-</html>
+
+    const now = new Date();
+
+    // Construir fecha/hora objetivo (hoy a HH:MM:SS)
+    const target = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      entryHour,
+      entryMin,
+      entrySec,
+      0
+    );
+
+    let diff = Math.floor((target - now) / 1000);
+
+    // Si ya pasó pero fue hace menos de 5 min, mostrar ¡YA!
+    // Si pasó hace más tiempo, puede ser para mañana
+    if (diff < -300) {
+      // Señal para el día siguiente
+      target.setDate(target.getDate() + 1);
+      diff = Math.floor((target - now) / 1000);
+    }
+
+    if (diff <= 0) {
+      el.textContent = "¡YA!";
+      el.style.color  = "#00ff88";
+      if (circle) {
+        circle.style.borderColor = "#00ff88";
+        circle.style.boxShadow   = "0 0 20px rgba(0,255,136,0.6)";
+        circle.classList.add("pulse");
+      }
+    } else {
+      const hh = Math.floor(diff / 3600);
+      const mm = Math.floor((diff % 3600) / 60);
+      const ss = diff % 60;
+
+      // Si quedan más de 60 min mostrar HH:MM, si no MM:SS
+      if (hh > 0) {
+        el.textContent = `${String(hh).padStart(2,"0")}:${String(mm).padStart(2,"0")}`;
+      } else {
+        el.textContent = `${String(mm).padStart(2,"0")}:${String(ss).padStart(2,"0")}`;
+      }
+
+      if (circle) {
+        if (diff <= 10) {
+          el.style.color = "#ff3366";
+          circle.style.borderColor = "#ff3366";
+          circle.style.boxShadow   = "0 0 15px rgba(255,51,102,0.5)";
+        } else if (diff <= 60) {
+          el.style.color = "#ffc800";
+          circle.style.borderColor = "#ffc800";
+          circle.style.boxShadow   = "0 0 10px rgba(255,200,0,0.4)";
+        } else {
+          el.style.color = "var(--accent)";
+          circle.style.borderColor = "rgba(0,212,255,0.4)";
+          circle.style.boxShadow   = "none";
+        }
+        circle.classList.remove("pulse");
+      }
+    }
+  };
+
+  tick();
+  timerIntervals[signal.id] = setInterval(tick, 1000);
+}
+
+// ═══════════════════════════════════════════════════════════
+// HISTORIAL
+// ═══════════════════════════════════════════════════════════
+function renderHistorySignals(signals) {
+  const tbody = document.getElementById("history-body");
+  if (!signals.length) {
+    tbody.innerHTML = `<tr><td colspan="4" class="empty-row">Sin historial aún</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = signals.slice(0, 40).map(s => {
+    const isCall = s.direction === "CALL";
+    const dir = `<span class="badge ${isCall ? "call" : "put"}">${isCall ? "▲ CALL" : "▼ PUT"}</span>`;
+    return `<tr>
+      <td><strong>${s.asset}</strong></td>
+      <td>${dir}</td>
+      <td>${s.entryTime || "—"}</td>
+      <td>${resultBadge(s.status)}</td>
+    </tr>`;
+  }).join("");
+}
+
+function resultBadge(status) {
+  const map = {
+    win:  `<span class="badge win-b">✅ WIN</span>`,
+    loss: `<span class="badge loss-b">❌ LOSS</span>`,
+    draw: `<span class="badge draw-b">➖ DOJI</span>`
+  };
+  return map[status] || `<span class="badge pending">⏳ Pendiente</span>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// ESTADÍSTICAS
+// ═══════════════════════════════════════════════════════════
+async function loadSalaStats() {
+  const stats = await getSignalStats();
+  const set = (id, val) => { const e = document.getElementById(id); if (e) e.textContent = val; };
+  set("sala-total", stats.total);
+  set("sala-win",   stats.win);
+  set("sala-loss",  stats.loss);
+  set("sala-draw",  stats.draw);
+  set("sala-pct",   stats.pct + "%");
+  const bar = document.getElementById("sala-win-bar");
+  if (bar) bar.style.width = stats.pct + "%";
+}
+
+// ═══════════════════════════════════════════════════════════
+// SONIDO — Mixkit + Fallback Web Audio
+// ═══════════════════════════════════════════════════════════
+function playAlertSound() {
+  if (!audioEnabled) {
+    // Mostrar aviso visual si el sonido no está activado
+    showSalaToast("🔇 Activa el sonido para recibir alertas de audio", "info");
+    return;
+  }
+
+  const audio = document.getElementById("alertAudio");
+  if (audio) {
+    audio.currentTime = 0;
+    audio.volume = 1.0;
+    audio.play().catch(() => playFallbackBeep());
+  } else {
+    playFallbackBeep();
+  }
+}
+
+function playFallbackBeep() {
+  try {
+    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -6;
+    comp.ratio.value = 20;
+    comp.connect(ctx.destination);
+    [[1200,0.00,0.12],[1200,0.17,0.12],[1200,0.34,0.12],[1500,0.55,0.50]].forEach(([f,t,d]) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "square"; o.frequency.setValueAtTime(f, ctx.currentTime+t);
+      g.gain.setValueAtTime(0, ctx.currentTime+t);
+      g.gain.linearRampToValueAtTime(1.0, ctx.currentTime+t+0.01);
+      g.gain.linearRampToValueAtTime(0, ctx.currentTime+t+d);
+      o.connect(g); g.connect(comp);
+      o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+d+0.05);
+    });
+  } catch(e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════
+function showSalaToast(msg, type = "info") {
+  const t = document.createElement("div");
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  const c = document.getElementById("toast-container");
+  if (c) {
+    c.appendChild(t);
+    setTimeout(() => t.classList.add("show"), 10);
+    setTimeout(() => { t.classList.remove("show"); setTimeout(() => t.remove(), 400); }, 4000);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// NOTIFICACIONES PUSH
+// ═══════════════════════════════════════════════════════════
+async function requestNotifPermission() {
+  try {
+    if (!("Notification" in window)) {
+      showSalaToast("Tu navegador no soporta notificaciones", "info");
+      return;
+    }
+    const result = await Notification.requestPermission();
+    if (result === "granted") {
+      await initFCM();
+      showSalaToast("🔔 Notificaciones activadas", "success");
+      const btn = document.getElementById("btn-notif");
+      if (btn) {
+        btn.textContent = "🔔 NOTIF ON";
+        btn.style.color = "#00ff88";
+        btn.style.borderColor = "rgba(0,255,136,0.5)";
+        btn.style.background = "rgba(0,255,136,0.12)";
+      }
+    } else {
+      showSalaToast("Permiso de notificaciones denegado", "info");
+    }
+  } catch(e) {
+    showSalaToast("Error al activar notificaciones", "info");
+  }
+}
+
+// Mostrar/ocultar botón de notificaciones según soporte del navegador
+function checkNotifSupport() {
+  const btn = document.getElementById("btn-notif");
+  if (!btn) return;
+  if ("Notification" in window && Notification.permission !== "denied") {
+    btn.style.display = "inline-flex";
+    if (Notification.permission === "granted") {
+      btn.textContent = "🔔 NOTIF ON";
+      btn.style.color = "#00ff88";
+      btn.style.borderColor = "rgba(0,255,136,0.5)";
+      btn.style.background = "rgba(0,255,136,0.12)";
+    }
+  }
+}
