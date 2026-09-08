@@ -78,10 +78,12 @@ direction, entryTime "HH:MM", expiration, status), `results/{id}`,
 1. **Publicar `firebase.rules`** en Firebase Console → Firestore → Reglas
    (los cambios en el repo NO aplican solos). Con ellos quedan activos: admin
    por rol, FCM propio y audit_logs.
-2. **Desplegar la Cloud Function** `deleteAuthUser` (`CLOUD_FUNCTION_ELIMINAR_
-   USUARIO.js` → `functions/index.js` + `firebase deploy --only functions`) para
-   que "Eliminar usuario" borre también de Auth (hoy solo borra Firestore y deja
-   una nota en audit).
+2. **Eliminación real de usuarios (Auth):** el repo (rama remota) eliminó el
+   archivo de referencia `CLOUD_FUNCTION_ELIMINAR_USUARIO.js`, pero el cliente
+   (`users-controller.js`) sigue llamando a la Cloud Function `deleteAuthUser`
+   con *fallback* a borrar solo Firestore. Si se quiere borrar también de
+   Firebase Auth, hay que volver a crear/desplegar esa función; mientras tanto,
+   "Eliminar usuario" deja la cuenta Auth huérfana.
 3. **FCM:** revisar en Firebase Console que el par `messagingSenderId`/`appId` y
    el VAPID son del proyecto real `ali-binary-options` (los valores presentes
    parecen reales). Para push automático por señal hará falta un disparador.
@@ -94,7 +96,7 @@ direction, entryTime "HH:MM", expiration, status), `results/{id}`,
 |---|---|
 | `receiveBotWebhook` + `BOT_SECRET` (signal-controller.js) | Eliminado (muerto e inseguro) |
 | CSS responsive suelto al final de `index.html` (sin commitear) | Conservado y commiteado (mejora menor) |
-| Resto de archivos | En uso (index/sala/admin, controladores, sw, manifest, cloud function de referencia) |
+| Resto de archivos | En uso (index/sala/admin, controladores, sw, manifest) |
 
 ---
 
