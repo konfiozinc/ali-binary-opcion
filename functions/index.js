@@ -9,9 +9,9 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-// Secreto compartido scanner <-> función. Se configura por entorno:
-//   firebase functions:config:set appali.signal_secret="UN_SECRETO_LARGO"
-const SIGNAL_SECRET = functions.config().appali?.signal_secret || "CAMBIA_ESTE_SECRETO";
+// Secreto compartido scanner <-> función. Se lee de la variable de entorno
+// APPALI_SIGNAL_SECRET (definida en functions/.env al desplegar).
+const SIGNAL_SECRET = process.env.APPALI_SIGNAL_SECRET || "CAMBIA_ESTE_SECRETO";
 
 async function isAdmin(uid) {
   const doc = await admin.firestore().collection("users").doc(uid).get();

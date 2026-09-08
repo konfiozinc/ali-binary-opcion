@@ -1,0 +1,2 @@
+# Secretos locales de Cloud Functions (NO subir a git)
+functions/.env
