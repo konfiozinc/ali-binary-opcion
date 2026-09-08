@@ -290,6 +290,7 @@
       opacity: 0.6;
     }
   </style>
+<style>html,body{overflow-x:hidden}img,svg,video{max-width:100%;height:auto}table{max-width:100%}</style>
 </head>
 <body>
   <div class="bg-grid"></div>
@@ -512,6 +513,6 @@
 </html>
 <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
   }
 </script>

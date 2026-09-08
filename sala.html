@@ -486,10 +486,9 @@
       // Iniciar FCM después de que el usuario esté autenticado
       setTimeout(() => initFCM().catch(()=>{}), 2000);
     });
-    // Service Worker para PWA
+    // Service Worker para PWA (ruta relativa: funciona en GitHub Pages subcarpeta)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/ali-binary-opcion/sw.js')
-        .catch(() => navigator.serviceWorker.register('/sw.js').catch(()=>{}));
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
     }
   </script>
 </body>

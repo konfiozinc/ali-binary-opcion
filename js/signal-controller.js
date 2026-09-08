@@ -69,13 +69,13 @@ async function createBotSignal(data) {
   return ref.id;
 }
 
-// Endpoint de recepción para webhook del bot
-async function receiveBotWebhook(payload) {
-  // payload esperado: { secret, asset, direction, entryTime, expiration, strategy, confidence }
-  const BOT_SECRET = "ALI_BOT_SECRET_2026"; // cambiar por uno seguro
-  if (payload.secret !== BOT_SECRET) throw new Error("Unauthorized");
-  return await createBotSignal(payload);
-}
+// ── INTEGRACIÓN CON EL SCANNER (nota) ──────────────────────
+// Las señales del bot se crearán SERVIDOR→SERVIDOR (Cloud Function HTTP de
+// Firebase o cuenta de servicio del scanner), NUNCA desde el navegador:
+// un "webhook" en el cliente no recibe HTTP y un secreto en el código es
+// inseguro. Contrato del payload (futuro): asset, broker, direction,
+// entryTime "HH:MM", expiration (min), source "bot", botName "AppALI",
+// strategy, confidence. createBotSignal() ya guarda ese esquema.
 
 // ── EXPIRACIÓN AUTOMÁTICA DE SEÑALES ────────────────────────
 // Se ejecuta en background cuando cualquier usuario abre la sala

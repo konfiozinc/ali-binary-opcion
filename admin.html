@@ -554,6 +554,9 @@ async function sendSignal(asset, direction, entryTime, expiration, strategy = ''
     // Sincronizar sig-asset-input con sig-asset oculto
     document.addEventListener("DOMContentLoaded", () => {
       initAdmin();
+      // Auto-expiración de señales pendientes (solo admin puede escribir:
+      // se ejecuta al abrir el panel y cada 2 min dentro de startAutoExpire).
+      if (typeof startAutoExpire === "function") startAutoExpire();
       checkMaintenanceStatus();
       initAssetSelector();
     });

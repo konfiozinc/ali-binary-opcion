@@ -2,45 +2,62 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── FUNCIÓN: verificar si es admin ──────────────────────
-    function isAdmin() {
-      return request.auth != null &&
-             request.auth.token.email == "damoatrader1015@gmail.com";
+    // ── FUNCIONES DE ACCESO ─────────────────────────────────
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // ── FUNCIÓN: usuario autenticado ────────────────────────
-    function isAuth() {
-      return request.auth != null;
+    // Admin = el SUPER_ADMIN por email O cualquier usuario con role 'admin'
+    // en su documento users/{uid} (multi-admin real, alineado con roles.js).
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == "damoatrader1015@gmail.com" ||
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data != null
+         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin")
+      );
+    }
+
+    // El usuario solo puede actualizar sus campos de notificación FCM
+    // (no puede cambiarse role/activo/email).
+    function isSelfFcmUpdate() {
+      return isSignedIn()
+        && request.auth.uid == resource.data.uid
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(["fcmToken", "fcmUpdatedAt", "fcmDevice"]);
     }
 
     // ── COLECCIÓN users ─────────────────────────────────────
     match /users/{uid} {
-      // Cada usuario solo puede leer su propio doc
-      allow read:   if isAuth() && (request.auth.uid == uid || isAdmin());
-      // El admin puede leer/escribir todos
+      allow read:   if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow write:  if isAdmin();
-      // El propio usuario puede crear su doc (registro)
-      allow create: if isAuth() && request.auth.uid == uid;
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSelfFcmUpdate();
     }
 
     // ── COLECCIÓN signals ────────────────────────────────────
     match /signals/{signalId} {
-      // Solo admin escribe
       allow write:  if isAdmin();
-      // Usuarios autenticados pueden leer
-      allow read:   if isAuth();
+      allow read:   if isSignedIn();
     }
 
     // ── COLECCIÓN results ────────────────────────────────────
     match /results/{resultId} {
       allow write:  if isAdmin();
-      allow read:   if isAuth();
+      allow read:   if isSignedIn();
     }
 
     // ── COLECCIÓN settings ───────────────────────────────────
     match /settings/{doc} {
       allow write:  if isAdmin();
-      allow read:   if isAuth();
+      allow read:   if isSignedIn();
+    }
+
+    // ── COLECCIÓN audit_logs ────────────────────────────────
+    // Cualquier usuario autenticado puede anexar; solo admins leen/borran.
+    match /audit_logs/{logId} {
+      allow create: if isSignedIn();
+      allow read:   if isAdmin();
+      allow delete: if isAdmin();
     }
   }
 }
