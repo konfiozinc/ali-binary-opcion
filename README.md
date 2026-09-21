@@ -4,7 +4,7 @@
 ```
 /
 ├── index.html          ← Login / Registro
-├── admin.html          ← Panel Administrador (solo damoa1510qtrading@gmail.com)
+├── admin.html          ← Panel Administrador (solo damoatrader1015@gmail.com)
 ├── sala.html           ← Sala Premium usuarios
 ├── manifest.json       ← PWA Manifest
 ├── sw.js               ← Service Worker
@@ -64,7 +64,7 @@ const firebaseConfig = {
 
 1. Abre `index.html` en el navegador
 2. Ve a la pestaña **REGISTRO**
-3. Regístrate con el email: `damoa1510qtrading@gmail.com`
+3. Regístrate con el email: `damoatrader1015@gmail.com`
 4. Serás redirigido automáticamente al panel admin
 
 ---
@@ -132,4 +132,4 @@ settings/{doc}
 
 ## Soporte
 Propietario: Darwin Montalvo  
-Admin email: damoa1510qtrading@gmail.com
+Admin email: damoatrader1015@gmail.com

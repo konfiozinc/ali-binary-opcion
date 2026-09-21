@@ -9,14 +9,51 @@ const admin = require("firebase-admin");
 
 admin.initializeApp();
 
-// Secreto compartido scanner <-> función. Se lee de la variable de entorno
-// APPALI_SIGNAL_SECRET (definida en functions/.env al desplegar).
-const SIGNAL_SECRET = process.env.APPALI_SIGNAL_SECRET || "CAMBIA_ESTE_SECRETO";
+// Email del SuperAdmin. Debe coincidir con firebase.rules (isSuperAdmin)
+// y con window.SUPER_ADMIN_EMAIL (js/firebase-config.js).
+const SUPER_ADMIN_EMAIL = "damoatrader1015@gmail.com";
+
+// Anti-spam en postSignal: una señal cada 10 segundos.
+const SIGNAL_COOLDOWN_MS = 10000;
+
+// Secreto compartido scanner <-> función (functions/.env).
+// Fail-closed: si no está configurado, NO se aceptan señales.
+const SIGNAL_SECRET = process.env.APPALI_SIGNAL_SECRET;
 
 async function isAdmin(uid) {
   const doc = await admin.firestore().collection("users").doc(uid).get();
   return doc.exists && doc.data().role === "admin";
 }
+
+// ── CUSTOM CLAIMS ──────────────────────────────────────────
+// Sincroniza el claim `admin` del token con el rol en Firestore.
+// Así firebase.rules puede usar request.auth.token.admin == true
+// sin leer Firestore en cada operación.
+exports.syncAdminClaim = functions.firestore
+  .document("users/{uid}")
+  .onWrite(async (change, context) => {
+    const uid  = context.params.uid;
+    const data = change.after.exists ? change.after.data() : null;
+    const isAdminRole = data && data.role === "admin";
+    try {
+      await admin.auth().setCustomUserClaims(uid, isAdminRole ? { admin: true } : null);
+      console.log(`[claims] ${uid} → admin=${isAdminRole}`);
+    } catch (e) {
+      console.warn("syncAdminClaim error:", e.message);
+    }
+  });
+
+// Permite a un admin fijar/retirar el claim manualmente (opcional).
+exports.setAdminClaim = functions.https.onCall(async (data, context) => {
+  if (!context.auth) throw new functions.https.HttpsError("unauthenticated", "No autenticado");
+  if (!(await isAdmin(context.auth.uid))) {
+    throw new functions.https.HttpsError("permission-denied", "Solo admins pueden gestionar claims");
+  }
+  const { uid, admin } = data || {};
+  if (!uid) throw new functions.https.HttpsError("invalid-argument", "Se requiere uid");
+  await admin.auth().setCustomUserClaims(uid, admin ? { admin: true } : null);
+  return { success: true, uid, admin: !!admin };
+});
 
 // ============================================================
 // 1) postSignal (HTTP) — publica una señal del scanner
@@ -29,7 +66,7 @@ exports.postSignal = functions.https.onRequest(async (req, res) => {
   if (req.method !== "POST") { res.status(405).json({ ok: false, error: "use POST" }); return; }
 
   const data = req.body || {};
-  if (data.secret !== SIGNAL_SECRET) {
+  if (!SIGNAL_SECRET || data.secret !== SIGNAL_SECRET) {
     res.status(401).json({ ok: false, error: "unauthorized" });
     return;
   }
@@ -41,6 +78,20 @@ exports.postSignal = functions.https.onRequest(async (req, res) => {
   }
 
   try {
+    // Anti-spam: máximo 1 señal cada SIGNAL_COOLDOWN_MS
+    const recent = await admin.firestore()
+      .collection("signals")
+      .orderBy("createdAt", "desc")
+      .limit(1)
+      .get();
+    if (!recent.empty) {
+      const last = recent.docs[0].data().createdAt;
+      if (last && last.toMillis && (Date.now() - last.toMillis()) < SIGNAL_COOLDOWN_MS) {
+        res.status(429).json({ ok: false, error: "rate_limited", retryInMs: SIGNAL_COOLDOWN_MS });
+        return;
+      }
+    }
+
     const signal = {
       asset: data.asset,
       broker: data.broker || "IQ Option",
@@ -108,7 +159,7 @@ exports.deleteAuthUser = functions.https.onCall(async (data, context) => {
   }
   const { uid, email } = data || {};
   if (!uid) throw new functions.https.HttpsError("invalid-argument", "Se requiere uid");
-  if (email === "damoatrader1015@gmail.com") {
+  if (email === SUPER_ADMIN_EMAIL) {
     throw new functions.https.HttpsError("permission-denied", "No puedes eliminar al SuperAdmin");
   }
   try {

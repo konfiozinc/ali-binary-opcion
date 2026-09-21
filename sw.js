@@ -1,6 +1,9 @@
 // ============================================================
-// SERVICE WORKER v2.0 — Ali Binary Options Pro
-// Push Notifications via Firebase Cloud Messaging
+// SERVICE WORKER v3 — Ali Binary Options Pro
+//   · Push Notifications (Firebase Cloud Messaging)
+//   · Estrategia de caché con versionado:
+//       - HTML / navegación  → network-first (siempre fresca)
+//       - Assets estáticos   → cache-first + revalidación en 2º plano
 // ============================================================
 
 importScripts("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js");
@@ -19,12 +22,22 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 // ── CACHE ───────────────────────────────────────────────────
-const CACHE_NAME   = "ali-binary-v2";
-const STATIC_ASSETS = [
-  "./",
+// ⚠️ IMPORTANTE: sube CACHE_VERSION cada vez que cambies el código,
+//    así los clientes descargan la versión nueva.
+const CACHE_VERSION  = "v3";
+const STATIC_CACHE   = `ali-binary-static-${CACHE_VERSION}`;
+const PAGES_CACHE    = `ali-binary-pages-${CACHE_VERSION}`;
+const CURRENT_CACHES = [STATIC_CACHE, PAGES_CACHE];
+
+// HTML pre-cacheado como fallback offline (se sirven network-first).
+const PAGES = [
   "./index.html",
-  "./admin.html",
   "./sala.html",
+  "./admin.html"
+];
+
+// Assets estáticos (inmutables entre versiones) → cache-first.
+const STATIC_ASSETS = [
   "./manifest.json",
   "./js/firebase-config.js",
   "./js/auth.js",
@@ -38,33 +51,72 @@ const STATIC_ASSETS = [
   "./assets/icon-512.png"
 ];
 
+// Nunca interceptar servicios externos (Firebase, fuentes, audio, analytics…)
+function isExternal(url) {
+  return url.startsWith("http") && !url.startsWith(self.location.origin);
+}
+
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(STATIC_ASSETS).catch(()=>{})));
-  self.skipWaiting();
+  e.waitUntil(
+    Promise.all([
+      caches.open(PAGES_CACHE).then(c => Promise.allSettled(PAGES.map(a => c.add(a)))),
+      caches.open(STATIC_CACHE).then(c => Promise.allSettled(STATIC_ASSETS.map(a => c.add(a))))
+    ]).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
+      Promise.all(keys.filter(k => !CURRENT_CACHES.includes(k)).map(k => caches.delete(k)))
+    ).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
 self.addEventListener("fetch", e => {
-  if (e.request.method !== "GET") return;
-  const url = e.request.url;
-  if (url.includes("firebase") || url.includes("googleapis") ||
-      url.includes("gstatic") || url.includes("mixkit")) return;
-  e.respondWith(
-    fetch(e.request).then(res => {
-      const clone = res.clone();
-      caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-      return res;
-    }).catch(() => caches.match(e.request))
-  );
+  const req = e.request;
+  if (req.method !== "GET") return;
+
+  const url = new URL(req.url);
+  if (isExternal(url.href)) return;
+
+  // HTML / navegación → network-first (los usuarios ven siempre la última versión)
+  if (req.mode === "navigate" || req.destination === "document") {
+    e.respondWith(networkFirst(req));
+    return;
+  }
+
+  // Resto (JS/CSS/imágenes/manifest) → cache-first con revalidación
+  e.respondWith(cacheFirst(req));
 });
+
+async function networkFirst(req) {
+  try {
+    const res = await fetch(req);
+    if (res && res.ok) {
+      const clone = res.clone();
+      caches.open(PAGES_CACHE).then(c => c.put(req, clone));
+    }
+    return res;
+  } catch (err) {
+    const cached = await caches.match(req);
+    if (cached) return cached;
+    const fallback = await caches.match("./index.html");
+    return fallback || Response.error();
+  }
+}
+
+async function cacheFirst(req) {
+  const cached = await caches.match(req);
+  const network = fetch(req).then(res => {
+    if (res && res.ok) {
+      const clone = res.clone();
+      caches.open(STATIC_CACHE).then(c => c.put(req, clone));
+    }
+    return res;
+  }).catch(() => cached);
+  return cached || network;
+}
 
 // ── FCM BACKGROUND MESSAGES ─────────────────────────────────
 // Recibe push cuando la app está en background o pantalla apagada

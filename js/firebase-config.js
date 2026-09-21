@@ -12,6 +12,11 @@ const firebaseConfig = {
   measurementId: "G-CDXNMWGHJD"
 };
 
+// ── SUPER ADMIN (fuente única en el frontend) ───────────────
+// Debe coincidir con firebase.rules (isSuperAdmin) y con
+// SUPER_ADMIN_EMAIL en functions/index.js.
+window.SUPER_ADMIN_EMAIL = "damoatrader1015@gmail.com";
+
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -128,7 +133,7 @@ async function checkMaintenance() {
     if (snap.exists && snap.data().maintenance === true) {
       const user = auth.currentUser;
       // SuperAdmin puede pasar siempre
-      if (user && user.email === "damoatrader1015@gmail.com") return false;
+      if (user && user.email === (window.SUPER_ADMIN_EMAIL || "damoatrader1015@gmail.com")) return false;
       return true; // mostrar pantalla de mantenimiento
     }
     return false;
@@ -142,3 +147,17 @@ async function setMaintenance(enabled) {
   );
   await writeAuditLog("MAINTENANCE_" + (enabled ? "ON" : "OFF"), {});
 }
+
+// ── FIREBASE APP CHECK (recomendado — NO activar sin configurar) ──
+// Protege el backend de peticiones no autorizadas fuera del dominio.
+// Pasos (consola Firebase):
+//   1) Firebase Console → App Check → Apps → registrar tu app web
+//      (dominio konfiozinc.github.io).
+//   2) Elegir proveedor reCAPTCHA v3 y copiar la Site Key.
+//   3) Incluir el SDK en cada HTML:
+//        <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-check-compat.js"></script>
+//   4) Activar en este archivo:
+//        firebase.appCheck().activate("AQUI_LA_SITE_KEY", false);
+//
+// ⚠️ Activar App Check sin registrar el sitio rompe el acceso (403).
+// Hazlo solo tras completar los pasos 1-4. Detalle en SECURITY.md.

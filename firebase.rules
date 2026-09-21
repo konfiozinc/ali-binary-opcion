@@ -2,23 +2,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── FUNCIONES DE ACCESO ─────────────────────────────────
+    // ── IDENTIDAD ──────────────────────────────────────────
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Admin = el SUPER_ADMIN por email O cualquier usuario con role 'admin'
-    // en su documento users/{uid} (multi-admin real, alineado con roles.js).
+    // Email del SuperAdmin. Debe coincidir con:
+    //   · window.SUPER_ADMIN_EMAIL (js/firebase-config.js)
+    //   · SUPER_ADMIN_EMAIL (functions/index.js)
+    function isSuperAdmin() {
+      return isSignedIn() && request.auth.token.email == "damoatrader1015@gmail.com";
+    }
+
+    // ── ADMIN ──────────────────────────────────────────────
+    // Orden de evaluación (barato → caro):
+    //   1. Custom Claim `admin == true` → instantáneo, 0 lecturas.
+    //   2. SuperAdmin por email.
+    //   3. Fallback transitorio: role == "admin" en users/{uid}
+    //      (1 sola lectura). Se sincroniza automáticamente vía
+    //      la Cloud Function syncAdminClaim; retirar este fallback
+    //      cuando todos los admins tengan su claim propagado.
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == "damoatrader1015@gmail.com" ||
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data != null
-         && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin")
+        request.auth.token.admin == true ||
+        isSuperAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin")
       );
     }
 
     // El usuario solo puede actualizar sus campos de notificación FCM
-    // (no puede cambiarse role/activo/email).
+    // (no puede cambiarse role/activo/email por esta vía).
     function isSelfFcmUpdate() {
       return isSignedIn()
         && request.auth.uid == resource.data.uid
@@ -28,34 +42,53 @@ service cloud.firestore {
 
     // ── COLECCIÓN users ─────────────────────────────────────
     match /users/{uid} {
-      allow read:   if isSignedIn() && (request.auth.uid == uid || isAdmin());
-      allow write:  if isAdmin();
-      allow create: if isSignedIn() && request.auth.uid == uid;
-      allow update: if isSelfFcmUpdate();
+      allow read: if isSignedIn() && (request.auth.uid == uid || isAdmin());
+
+      // Anti-escalada: un usuario NUNCA puede auto-asignarse 'admin'.
+      // Solo el SuperAdmin obtiene rol 'admin' al crearse su documento.
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.uid == uid
+        && request.resource.data.email == request.auth.token.email
+        && (request.resource.data.role == "user"
+            || (isSuperAdmin() && request.resource.data.role == "admin"));
+
+      allow update: if isAdmin() || isSelfFcmUpdate();
+      allow delete: if isAdmin();
     }
 
     // ── COLECCIÓN signals ────────────────────────────────────
     match /signals/{signalId} {
-      allow write:  if isAdmin();
-      allow read:   if isSignedIn();
+      allow write: if isAdmin();
+      allow read:  if isSignedIn();
     }
 
     // ── COLECCIÓN results ────────────────────────────────────
     match /results/{resultId} {
-      allow write:  if isAdmin();
-      allow read:   if isSignedIn();
+      allow write: if isAdmin();
+      allow read:  if isSignedIn();
     }
 
     // ── COLECCIÓN settings ───────────────────────────────────
     match /settings/{doc} {
-      allow write:  if isAdmin();
-      allow read:   if isSignedIn();
+      allow write: if isAdmin();
+      allow read:  if isSignedIn();
     }
 
-    // ── COLECCIÓN audit_logs ────────────────────────────────
-    // Cualquier usuario autenticado puede anexar; solo admins leen/borran.
+    // ── COLECCIÓN audit_logs ─────────────────────────────────
+    // Cada usuario solo puede registrar logs EN SU PROPIO NOMBRE
+    // (uid y email deben coincidir con el token). Así un usuario
+    // autenticado no puede inyectar logs falsos de otros.
+    // Los logs del sistema (bot/scanner/admin server-side) se escriben
+    // desde Cloud Functions con Admin SDK, que no pasa por estas reglas.
     match /audit_logs/{logId} {
-      allow create: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.action is string
+        && request.resource.data.action.size() > 0
+        && request.resource.data.action.size() <= 80;
+      allow update: if false;          // los logs son inmutables
       allow read:   if isAdmin();
       allow delete: if isAdmin();
     }

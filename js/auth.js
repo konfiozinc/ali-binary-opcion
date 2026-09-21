@@ -1,6 +1,4 @@
-// Admin email — debe coincidir con SUPER_ADMIN en roles.js
-const ADMIN_EMAIL = "damoa1510qtrading@gmail.com";
-
+// Email del SuperAdmin — fuente única: window.SUPER_ADMIN_EMAIL (js/firebase-config.js)
 // ============================================================
 // AUTH.JS — Autenticación Firebase
 // ============================================================
@@ -8,7 +6,13 @@ const ADMIN_EMAIL = "damoa1510qtrading@gmail.com";
 // ─── LOGIN ───────────────────────────────────────────────────
 async function loginUser(email, password) {
   try {
-    const cred = await auth.signInWithEmailAndPassword(email, password);
+    if (!email || !password) {
+      return { success: false, error: "Completa todos los campos." };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return { success: false, error: "Email inválido." };
+    }
+    const cred = await auth.signInWithEmailAndPassword(email.trim(), password);
     return { success: true, user: cred.user };
   } catch (err) {
     return { success: false, error: translateFirebaseError(err.code) };
@@ -18,6 +22,20 @@ async function loginUser(email, password) {
 // ─── REGISTRO ────────────────────────────────────────────────
 async function registerUser(email, password, nombre) {
   try {
+    // ── Validación temprana (defensa en profundidad; el front ya valida) ──
+    email    = (email    || "").trim();
+    nombre   = (nombre   || "").trim();
+    password = password || "";
+    if (!nombre || !email || !password) {
+      return { success: false, error: "Completa todos los campos." };
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { success: false, error: "Email inválido." };
+    }
+    if (password.length < 6) {
+      return { success: false, error: "La contraseña debe tener al menos 6 caracteres." };
+    }
+
     // Validar dominio de email real (bloquear dominios falsos)
     const blockedDomains = ["d.com", "test.com", "fake.com", "example.com", "mailinator.com", "tempmail.com", "guerrillamail.com", "yopmail.com"];
     const domain = email.split("@")[1]?.toLowerCase();
@@ -32,13 +50,15 @@ async function registerUser(email, password, nombre) {
 
     const cred = await auth.createUserWithEmailAndPassword(email, password);
     const uid  = cred.user.uid;
-    const role = email === ADMIN_EMAIL ? "admin" : "user";
+    // Rol admin SOLO para el SuperAdmin (por email canónico de Firebase).
+    const role = email.toLowerCase() === (window.SUPER_ADMIN_EMAIL || "").toLowerCase() ? "admin" : "user";
 
-    // Guardar en Firestore
+    // Guardar en Firestore usando el email canónico de Firebase
+    // (garantiza que coincida con request.auth.token.email en las reglas).
     await db.collection("users").doc(uid).set({
       uid,
       nombre,
-      email,
+      email: cred.user.email || email,
       role,
       activo: true,
       emailVerified: false,

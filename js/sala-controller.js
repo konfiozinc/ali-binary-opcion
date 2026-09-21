@@ -10,6 +10,7 @@ let prevActiveIds    = null;
 let timerIntervals   = {};
 let audioEnabled     = false;
 let deferredInstall  = null;
+let audioCtx         = null;
 
 // ── INIT ─────────────────────────────────────────────────────
 async function initSala() {
@@ -18,6 +19,7 @@ async function initSala() {
     currentUser.nombre || currentUser.email;
 
   initAudio();
+  unlockAudioOnInteraction();
   initPWA();
   checkNotifSupport();
   startSignalListener();
@@ -37,6 +39,36 @@ function initAudio() {
     // Mostrar aviso si no está activado
     updateAudioBtn(false);
   }
+}
+
+// Contexto de audio único y reutilizable (evita crear uno por beep).
+function getAudioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume().catch(()=>{});
+  return audioCtx;
+}
+
+// iOS/Safari bloquean el autoplay hasta que el usuario interactúa.
+// Desbloqueamos el audio en la PRIMERA interacción (tap/clic/tecla).
+function unlockAudioOnInteraction() {
+  const unlock = () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx && ctx.state === "suspended") ctx.resume();
+      const audio = document.getElementById("alertAudio");
+      if (audio) {
+        const p = audio.play();
+        if (p && p.then) p.then(() => { audio.pause(); audio.currentTime = 0; }).catch(()=>{});
+      }
+    } catch(e) {}
+  };
+  ["touchstart", "touchend", "click", "keydown"].forEach(ev =>
+    window.addEventListener(ev, unlock, { once: true, passive: true })
+  );
 }
 
 function toggleAudio() {
@@ -358,7 +390,8 @@ function playAlertSound() {
 
 function playFallbackBeep() {
   try {
-    const ctx  = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioContext();
+    if (!ctx) return;
     const comp = ctx.createDynamicsCompressor();
     comp.threshold.value = -6;
     comp.ratio.value = 20;

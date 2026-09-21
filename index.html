@@ -375,9 +375,16 @@
   <script src="js/roles.js"></script>
 
   <script>
-    // Si ya hay sesión activa, redirigir
+    // Si ya hay sesión activa, redirigir.
+    // Flag anti-bucle: evita redirigir varias veces si onAuthStateChanged
+    // vuelve a dispararse durante la navegación o por un error de red.
+    let _redirecting = false;
     auth.onAuthStateChanged(user => {
-      if (user) redirectByRole(user);
+      if (!user || _redirecting) return;
+      _redirecting = true;
+      redirectByRole(user)
+        .catch(err => console.error("redirectByRole error:", err))
+        .finally(() => { _redirecting = false; });
     });
 
     function switchTab(tab) {

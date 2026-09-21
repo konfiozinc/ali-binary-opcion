@@ -2,7 +2,15 @@
 // ROLES.JS v2.0 — Multi-admin por Firestore role='admin'
 // ============================================================
 
-const SUPER_ADMIN = "damoa1510qtrading@gmail.com";
+// Fuente única: window.SUPER_ADMIN_EMAIL (js/firebase-config.js)
+const SUPER_ADMIN = window.SUPER_ADMIN_EMAIL || "damoatrader1015@gmail.com";
+
+// Navegación con guarda anti-bucle: no recarga si ya estamos en el destino.
+function navigate(path) {
+  const current = (window.location.pathname.split("/").pop() || "index.html").toLowerCase();
+  if (current === String(path).toLowerCase()) return;
+  window.location.href = path;
+}
 
 async function getUserDoc(uid) {
   const snap = await db.collection("users").doc(uid).get();
@@ -15,7 +23,7 @@ function isAdminRole(userData) {
 
 // Redirigir según rol
 async function redirectByRole(user) {
-  if (!user) { window.location.href = "index.html"; return; }
+  if (!user) { navigate("index.html"); return; }
   try {
     let userData = await getUserDoc(user.uid);
     if (!userData) {
@@ -34,10 +42,10 @@ async function redirectByRole(user) {
       return;
     }
     await writeAuditLog("USER_LOGIN", { email: user.email, role: userData.role });
-    window.location.href = isAdminRole(userData) ? "admin.html" : "sala.html";
+    navigate(isAdminRole(userData) ? "admin.html" : "sala.html");
   } catch(e) {
     console.error("redirectByRole error:", e);
-    window.location.href = user.email === SUPER_ADMIN ? "admin.html" : "sala.html";
+    navigate(user.email === SUPER_ADMIN ? "admin.html" : "sala.html");
   }
 }
 
@@ -46,15 +54,15 @@ async function requireAdmin() {
   return new Promise((resolve) => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       unsub();
-      if (!user) { window.location.href = "index.html"; return; }
+      if (!user) { navigate("index.html"); return; }
       try {
         const userData = await getUserDoc(user.uid);
-        if (!userData || !userData.activo) { await auth.signOut(); window.location.href = "index.html"; return; }
-        if (!isAdminRole(userData)) { window.location.href = "sala.html"; return; }
+        if (!userData || !userData.activo) { await auth.signOut(); navigate("index.html"); return; }
+        if (!isAdminRole(userData)) { navigate("sala.html"); return; }
         resolve(userData);
       } catch(e) {
         if (user.email === SUPER_ADMIN) resolve({ nombre: "Admin", email: user.email, role: "admin", activo: true });
-        else window.location.href = "sala.html";
+        else navigate("sala.html");
       }
     });
   });
@@ -65,10 +73,10 @@ async function requireAuth() {
   return new Promise((resolve) => {
     const unsub = auth.onAuthStateChanged(async (user) => {
       unsub();
-      if (!user) { window.location.href = "index.html"; return; }
+      if (!user) { navigate("index.html"); return; }
       try {
         const userData = await getUserDoc(user.uid);
-        if (!userData || !userData.activo) { await auth.signOut(); window.location.href = "index.html"; return; }
+        if (!userData || !userData.activo) { await auth.signOut(); navigate("index.html"); return; }
         resolve(userData);
       } catch(e) { resolve({ nombre: user.email, email: user.email, role: "user", activo: true }); }
     });

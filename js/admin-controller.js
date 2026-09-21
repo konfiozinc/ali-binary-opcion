@@ -147,7 +147,7 @@ function renderUsers(users) {
   const tbody = document.getElementById("users-table-body");
   tbody.innerHTML = users.map(u => {
     const isAdmin    = u.role === "admin";
-    const isPrincipal= u.email === "damoatrader1015@gmail.com";
+    const isPrincipal= u.email === (window.SUPER_ADMIN_EMAIL || "damoatrader1015@gmail.com");
     const status     = u.activo
       ? `<span class="badge active-b">Activo</span>`
       : `<span class="badge blocked-b">Bloqueado</span>`;
