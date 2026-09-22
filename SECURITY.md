@@ -83,6 +83,12 @@ powershell -ExecutionPolicy Bypass -File deploy.ps1
 Esto publica `firebase.rules`, instala dependencias y despliega las funciones.
 Requiere el proyecto `ali-binary-options` (ya configurado en `.firebaserc`).
 
+> ⚠️ **Cloud Functions exige el plan Blaze (pago por uso).** Si el proyecto sigue
+> en Spark (gratuito), `firebase deploy --only functions` falla al intentar
+> habilitar `cloudbuild.googleapis.com`. Actualiza el plan en:
+> https://console.firebase.google.com/project/ali-binary-options/usage/details
+> Las **reglas de Firestore sí se publican sin Blaze**.
+
 ---
 
 ## 3. Recomendaciones pendientes (mejora continua)
