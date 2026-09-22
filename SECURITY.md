@@ -60,15 +60,28 @@ deben acotarse:
    el snippet). ⚠️ No activar sin haber registrado el sitio.
 
 ### 2.4 Configurar el secreto del bot
-`postSignal` lee `APPALI_SIGNAL_SECRET`. Define un valor fuerte:
+`postSignal` lee `APPALI_SIGNAL_SECRET` desde `functions/.env` (la CLI la carga
+como variable de entorno al desplegar). Ese archivo está **gitignored** y ya existe
+localmente; verifica que tenga un valor fuerte:
 
-```bash
-cd functions
-# firebase functions:secrets:set APPALI_SIGNAL_SECRET
+```
+APPALI_SIGNAL_SECRET=TU_SECRETO_LARGO_Y_ALEATORIO
 ```
 
 El scanner debe enviar `{ secret, asset, direction, entryTime, expiration, ... }`
-a la URL de la función. Sin secreto, la función rechaza todo (fail-closed).
+con ese mismo valor. Sin secreto, la función rechaza todo (fail-closed).
+(Alternativa más robusta: migrar a Secret Manager con `firebase functions:secrets:set`
+y `runWith({ secrets: [...] })`.)
+
+### 2.5 Desplegar reglas + funciones (un solo comando)
+En la máquina donde esté la CLI (`npm i -g firebase-tools` + `firebase login`):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File deploy.ps1
+```
+
+Esto publica `firebase.rules`, instala dependencias y despliega las funciones.
+Requiere el proyecto `ali-binary-options` (ya configurado en `.firebaserc`).
 
 ---
 
