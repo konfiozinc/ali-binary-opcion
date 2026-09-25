@@ -92,5 +92,24 @@ service cloud.firestore {
       allow read:   if isAdmin();
       allow delete: if isAdmin();
     }
+
+    // ── GSR LOGIN: cuentas / sesiones / rate_limits ─────────
+    // cuentas: gestionadas por Functions (Admin SDK) o por admins.
+    match /cuentas/{traderId} {
+      allow read:  if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // sesiones: solo las crea/lee verificarLogin y validarSesion (Admin SDK).
+    match /sesiones/{token} {
+      allow read:  if false;
+      allow write: if false;
+    }
+
+    // rate_limits: solo el backend (Admin SDK).
+    match /rate_limits/{key} {
+      allow read:  if false;
+      allow write: if false;
+    }
   }
 }
